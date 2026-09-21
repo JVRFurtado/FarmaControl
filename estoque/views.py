@@ -3,8 +3,22 @@ from .models import Produto, Medicamento, Categoria
 from .forms import ProdutoForm, MedicamentoForm, EntregaForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth.decorators import user_passes_test
+from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 from django.db.models import Q
+from functools import wraps
+
+
+def gestor_required(view_func):
+    """Só permite acesso a usuários com cargo 'Gestor'. Atendentes recebem 403."""
+    @wraps(view_func)
+    @login_required
+    def _wrapped(request, *args, **kwargs):
+        if request.user.cargo != 'G':
+            raise PermissionDenied('Apenas o Gestor pode realizar esta ação.')
+        return view_func(request, *args, **kwargs)
+    return _wrapped
 
 
 # Página inicial
@@ -23,7 +37,10 @@ def lista_produtos(request):
         )
 
     produtos = produtos.order_by('nome')
-    return render(request, 'estoque/lista_produtos.html', {'produtos': produtos})
+    return render(request, 'estoque/lista_produtos.html', {
+        'produtos': produtos,
+        'is_gestor': request.user.cargo == 'G',
+    })
 
 # Adicionar produto
 @login_required
@@ -116,9 +133,15 @@ def editar_produto(request, pk):
 
 
 # Excluir produto
-@login_required
+# Restrito a Gestor e exige POST (evita exclusão via link direto/GET e por Atendentes).
+@gestor_required
 def excluir_produto(request, pk):
     produto = get_object_or_404(Produto, pk=pk)
+
+    if request.method != 'POST':
+        # Mostra uma página de confirmação em vez de excluir direto no GET.
+        return render(request, 'estoque/confirmar_exclusao.html', {'produto': produto})
+
     produto.delete()
     messages.success(request, 'Produto excluído com sucesso!')
     return redirect('lista_produtos')

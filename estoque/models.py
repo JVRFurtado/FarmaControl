@@ -33,7 +33,3 @@ class Medicamento(Produto):
 
     def __str__(self):
         return f"{self.nome} - {self.dosagem}"
-
-
-    # login admin senha=   123456
-    

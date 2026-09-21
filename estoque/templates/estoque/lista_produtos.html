@@ -129,6 +129,27 @@
       text-decoration: underline;
     }
 
+    .acoes form.acao-excluir {
+      display: inline;
+    }
+
+    .acoes .link-como-botao {
+      background: none;
+      border: none;
+      padding: 0;
+      color: #228B22;
+      margin-right: 12px;
+      font-weight: bold;
+      font-size: 1em;
+      font-family: inherit;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .acoes .link-como-botao:hover {
+      text-decoration: underline;
+    }
+
     .voltar {
       margin-top: 30px;
       text-align: center;
@@ -184,9 +205,13 @@
             <td>{{ produto.quantidade }}</td>
             <td>{{ produto.data_validade }}</td>
             <td class="acoes">
+              {% if is_gestor %}
               <a href="{% url 'editar_produto' produto.id %}"><i class="fa fa-edit"></i> Editar</a>
-              <a href="{% url 'excluir_produto' produto.id %}" onclick="return confirm('Tem certeza que deseja excluir?')">
-                <i class="fa fa-trash-alt"></i> Excluir
+              <form action="{% url 'excluir_produto' produto.id %}" method="post" class="acao-excluir" onsubmit="return confirm('Tem certeza que deseja excluir?')">
+                {% csrf_token %}
+                <button type="submit" class="link-como-botao"><i class="fa fa-trash-alt"></i> Excluir</button>
+              </form>
+              {% endif %}
               <a href="{% url 'entregar_produto' produto.id %}">
                 <i class="fa fa-truck"></i> Entregar
               </a>

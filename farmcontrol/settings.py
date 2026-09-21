@@ -4,13 +4,26 @@ import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECRET_KEY e DEBUG via variável de ambiente para segurança em produção
-SECRET_KEY = os.environ.get('SECRET_KEY', 'sua-chave-de-desenvolvimento-aqui')
+# SECRET_KEY: obrigatório via variável de ambiente em produção.
+# Em desenvolvimento local, usa uma chave fixa apenas para não travar o `runserver`
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-DEBUG = True
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'django-insecure-dev-only-chave-local-nao-usar-em-producao'
+    else:
+        raise RuntimeError(
+            'SECRET_KEY não foi definida. Configure a variável de ambiente SECRET_KEY '
+            '(no Render: Environment > Environment Variables) antes de rodar em produção.'
+        )
 
-# Ajuste os hosts permitidos para seu domínio no Heroku e localhost
-ALLOWED_HOSTS = ['farmcontrol-adriana-70ca2f0e56ca.herokuapp.com', 'farmcontrol.onrender.com', 'localhost', '127.0.0.1']
+# Hosts permitidos: definidos via variável de ambiente (separados por vírgula),
+# com um padrão razoável para desenvolvimento e para o domínio conhecido no Render.
+ALLOWED_HOSTS = os.environ.get(
+    'ALLOWED_HOSTS',
+    'farmcontrol.onrender.com,localhost,127.0.0.1'
+).split(',')
 
 # App de usuários customizado
 AUTH_USER_MODEL = 'usuarios.Users'
@@ -61,19 +74,27 @@ TEMPLATES = [
 WSGI_APPLICATION = 'farmcontrol.wsgi.application'
 
 # Configuração do banco de dados:
-# Usa PostgreSQL 
+# Usa a variável de ambiente DATABASE_URL (fornecida automaticamente pelo Render,
+# conforme configurado em render.yaml). Em desenvolvimento local, se DATABASE_URL
+# não estiver definida, cai para um SQLite local (db.sqlite3) para facilitar testes
+# sem precisar de um Postgres rodando na máquina.
+DATABASE_URL = os.environ.get('DATABASE_URL')
 
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'farmcontrol_db',
-        'USER': 'farmcontrol_db_user',
-        'PASSWORD': 'KTKMgcdgJrqxKbCX6rOIWPR7LCm9TTr5',
-        'HOST': 'dpg-d0macpjuibrs73ehhc2g-a.oregon-postgres.render.com',
-        'PORT': '5432',
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=not DEBUG,
+        )
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 
@@ -112,5 +133,5 @@ ROLEPERMISSIONS_MODULE = 'usuarios.roles'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG if DEBUG else logging.WARNING)
 
