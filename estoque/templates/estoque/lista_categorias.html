@@ -1,0 +1,130 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Categorias</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #a8edea, #fed6e3);
+      margin: 0;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px;
+      background-color: #fff;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #228B22;
+      margin-bottom: 30px;
+    }
+
+    .actions {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .actions a {
+      display: inline-block;
+      padding: 12px 24px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: bold;
+      background-color: #228B22;
+      color: white;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    li form {
+      display: inline;
+      margin: 0;
+    }
+
+    .link-excluir {
+      background: none;
+      border: none;
+      color: #c0392b;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1em;
+    }
+
+    .link-excluir:hover {
+      text-decoration: underline;
+    }
+
+    .voltar {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    .voltar a {
+      background-color: #888;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><i class="fa fa-tags"></i> Categorias</h1>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div style="padding: 10px; border-radius: 8px; margin-bottom: 8px; background-color: #d4edda; color: #155724;">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="actions">
+      <a href="{% url 'adicionar_categoria' %}"><i class="fa fa-plus-circle"></i> Nova categoria</a>
+    </div>
+
+    <ul>
+      {% for categoria in categorias %}
+        <li>
+          <span>{{ categoria.nome }}</span>
+          {% if is_gestor %}
+          <form action="{% url 'excluir_categoria' categoria.id %}" method="post" onsubmit="return confirm('Excluir esta categoria? Produtos que a usam ficarão sem categoria.')">
+            {% csrf_token %}
+            <button type="submit" class="link-excluir"><i class="fa fa-trash-alt"></i> Excluir</button>
+          </form>
+          {% endif %}
+        </li>
+      {% empty %}
+        <li style="justify-content: center; font-style: italic; color: #555;">Nenhuma categoria cadastrada.</li>
+      {% endfor %}
+    </ul>
+
+    <div class="voltar">
+      <a href="{% url 'dashboard' %}"><i class="fa fa-arrow-left"></i> Voltar ao Início</a>
+    </div>
+  </div>
+</body>
+</html>

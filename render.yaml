@@ -3,7 +3,7 @@ services:
     name: farmcontrol
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn farmcontrol.wsgi
+    startCommand: gunicorn farmacontrol.wsgi
     envVars:
       - key: DATABASE_URL
         fromDatabase:

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Nova Categoria</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #a8edea, #fed6e3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .form-container {
+      background-color: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      width: 380px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #228B22;
+      margin-bottom: 30px;
+      font-size: 24px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #333;
+      font-weight: 600;
+      text-align: left;
+    }
+
+    .input-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 0 10px;
+      background-color: #fff;
+    }
+
+    .input-group i {
+      color: #999;
+      margin-right: 10px;
+    }
+
+    .input-form {
+      flex: 1;
+      border: none;
+      outline: none;
+      padding: 10px;
+      font-size: 14px;
+      background-color: transparent;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #228B22;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #1a731a;
+    }
+
+    .back-button {
+      margin-top: 20px;
+      display: inline-block;
+      background-color: #888;
+      text-decoration: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+
+    .errorlist {
+      color: red;
+      margin: 0 0 10px 0;
+      padding-left: 0;
+      list-style: none;
+      text-align: left;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h1><i class="fa fa-tags"></i> Nova Categoria</h1>
+
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+
+      <label for="{{ form.nome.id_for_label }}">Nome:</label>
+      <div class="input-group">
+        <i class="fa fa-tag"></i>
+        {{ form.nome }}
+      </div>
+      {{ form.nome.errors }}
+
+      <button type="submit"><i class="fa fa-plus-circle"></i> Cadastrar categoria</button>
+    </form>
+
+    <a href="{{ next }}" class="back-button"><i class="fa fa-arrow-left"></i> Voltar</a>
+  </div>
+</body>
+</html>

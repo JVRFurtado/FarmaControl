@@ -195,6 +195,11 @@
         {{ form.categoria }}
       </div>
       {{ form.categoria.errors }}
+      <p style="text-align: left; margin: -10px 0 15px 0;">
+        <a href="{% url 'adicionar_categoria' %}?next={{ request.path }}" style="color: #228B22; font-size: 13px;">
+          <i class="fa fa-plus-circle"></i> Cadastrar nova categoria
+        </a>
+      </p>
 
       <label for="{{ form.quantidade.id_for_label }}">Quantidade:</label>
       <div class="input-group">
@@ -202,6 +207,13 @@
         {{ form.quantidade }}
       </div>
       {{ form.quantidade.errors }}
+
+      <label for="{{ form.estoque_minimo.id_for_label }}">Estoque mínimo:</label>
+      <div class="input-group">
+        <i class="fa fa-exclamation-triangle"></i>
+        {{ form.estoque_minimo }}
+      </div>
+      {{ form.estoque_minimo.errors }}
 
       <label for="{{ form.data_validade.id_for_label }}">Data validade:</label>
       <div class="input-group">

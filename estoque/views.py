@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Produto, Medicamento, Categoria
-from .forms import ProdutoForm, MedicamentoForm, EntregaForm
+from .forms import ProdutoForm, MedicamentoForm, EntregaForm, CategoriaForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
@@ -49,7 +49,9 @@ def adicionar_produto(request):
         form = ProdutoForm(request.POST)
         if form.is_valid():
             nome = form.cleaned_data['nome']
-            tamanho = form.cleaned_data['tamanho']
+            altura = form.cleaned_data['altura']
+            largura = form.cleaned_data['largura']
+            comprimento = form.cleaned_data['comprimento']
             categoria = form.cleaned_data['categoria']
             data_validade = form.cleaned_data['data_validade']
             ultima_compra = form.cleaned_data['ultima_compra']
@@ -57,7 +59,9 @@ def adicionar_produto(request):
             # Verifica se já existe produto exatamente igual
             if Produto.objects.filter(
                 nome=nome, 
-                tamanho=tamanho,
+                altura=altura,
+                largura=largura,
+                comprimento=comprimento,
                 categoria=categoria,
                 data_validade=data_validade,
                 ultima_compra=ultima_compra
@@ -171,3 +175,45 @@ def entregar_produto(request, produto_id):
         form = EntregaForm()
         
     return render(request, 'estoque/entregar_produto.html', {'produto': produto, 'form': form})
+
+
+# --- Categorias ---
+
+@login_required
+def lista_categorias(request):
+    categorias = Categoria.objects.all()
+    return render(request, 'estoque/lista_categorias.html', {
+        'categorias': categorias,
+        'is_gestor': request.user.cargo == 'G',
+    })
+
+
+@login_required
+def adicionar_categoria(request):
+    # `next` permite voltar direto para o formulário de produto/medicamento
+    # que o usuário estava preenchendo quando percebeu que faltava a categoria.
+    from django.urls import reverse
+    next_url = request.GET.get('next') or request.POST.get('next') or reverse('lista_categorias')
+
+    if request.method == 'POST':
+        form = CategoriaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Categoria cadastrada com sucesso!')
+            return redirect(next_url)
+    else:
+        form = CategoriaForm()
+
+    return render(request, 'estoque/adicionar_categoria.html', {'form': form, 'next': next_url})
+
+
+@gestor_required
+def excluir_categoria(request, pk):
+    categoria = get_object_or_404(Categoria, pk=pk)
+
+    if request.method != 'POST':
+        return render(request, 'estoque/confirmar_exclusao_categoria.html', {'categoria': categoria})
+
+    categoria.delete()
+    messages.success(request, 'Categoria excluída. Produtos dessa categoria ficaram sem categoria definida.')
+    return redirect('lista_categorias')

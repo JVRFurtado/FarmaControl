@@ -170,19 +170,38 @@
       </div>
       {{ form.nome.errors }}
 
-      <label for="{{ form.tamanho.id_for_label }}">Tamanho:</label>
-      <div class="input-group">
-        <i class="fa fa-arrows-alt-h"></i>
-        {{ form.tamanho }}
-      </div>
-      {{ form.tamanho.errors }}
-
       <label for="{{ form.categoria.id_for_label }}">Categoria:</label>
       <div class="input-group">
         <i class="fa fa-tags"></i>
         {{ form.categoria }}
       </div>
       {{ form.categoria.errors }}
+      <p style="text-align: left; margin: -10px 0 15px 0;">
+        <a href="{% url 'adicionar_categoria' %}?next={{ request.path }}" style="color: #228B22; font-size: 13px;">
+          <i class="fa fa-plus-circle"></i> Cadastrar nova categoria
+        </a>
+      </p>
+
+      <label for="{{ form.altura.id_for_label }}">Altura (cm):</label>
+      <div class="input-group">
+        <i class="fa fa-ruler-vertical"></i>
+        {{ form.altura }}
+      </div>
+      {{ form.altura.errors }}
+
+      <label for="{{ form.largura.id_for_label }}">Largura (cm):</label>
+      <div class="input-group">
+        <i class="fa fa-ruler-horizontal"></i>
+        {{ form.largura }}
+      </div>
+      {{ form.largura.errors }}
+
+      <label for="{{ form.comprimento.id_for_label }}">Comprimento (cm):</label>
+      <div class="input-group">
+        <i class="fa fa-ruler"></i>
+        {{ form.comprimento }}
+      </div>
+      {{ form.comprimento.errors }}
 
       <label for="{{ form.quantidade.id_for_label }}">Quantidade:</label>
       <div class="input-group">
@@ -190,6 +209,13 @@
         {{ form.quantidade }}
       </div>
       {{ form.quantidade.errors }}
+
+      <label for="{{ form.estoque_minimo.id_for_label }}">Estoque mínimo:</label>
+      <div class="input-group">
+        <i class="fa fa-exclamation-triangle"></i>
+        {{ form.estoque_minimo }}
+      </div>
+      {{ form.estoque_minimo.errors }}
 
       <label for="{{ form.data_validade.id_for_label }}">Data validade:</label>
       <div class="input-group">

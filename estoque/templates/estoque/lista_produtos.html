@@ -118,6 +118,44 @@
       background-color: #f9f9f9;
     }
 
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: bold;
+      margin: 2px 4px 2px 0;
+      white-space: nowrap;
+    }
+
+    .badge-baixo {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    .badge-vencido {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    .badge-aviso {
+      background-color: #ffe5b4;
+      color: #8a5300;
+    }
+
+    .badge-ok {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    tr.linha-vencido {
+      background-color: #fdf1f1;
+    }
+
+    tr.linha-aviso {
+      background-color: #fffaf0;
+    }
+
     .acoes a {
       color: #228B22;
       margin-right: 12px;
@@ -185,6 +223,9 @@
       <a href="{% url 'adicionar_medicamento' %}" class="botao-cinza">
         <i class="fa fa-pills"></i> Adicionar Medicamento
       </a>
+      <a href="{% url 'lista_categorias' %}" class="botao-cinza">
+        <i class="fa fa-tags"></i> Categorias
+      </a>
     </div>
 
     <table>
@@ -194,16 +235,26 @@
           <th><i class="fa fa-tags"></i> Categoria</th>
           <th><i class="fa fa-sort-numeric-up"></i> Quantidade</th>
           <th><i class="fa fa-calendar-alt"></i> Validade</th>
+          <th><i class="fa fa-triangle-exclamation"></i> Status</th>
           <th><i class="fa fa-cogs"></i> Ações</th>
         </tr>
       </thead>
       <tbody>
         {% for produto in produtos %}
-          <tr>
+          <tr class="{% if produto.esta_vencido %}linha-vencido{% elif produto.vencimento_proximo %}linha-aviso{% endif %}">
             <td>{{ produto.nome }}</td>
             <td>{{ produto.categoria.nome }}</td>
-            <td>{{ produto.quantidade }}</td>
-            <td>{{ produto.data_validade }}</td>
+            <td>{{ produto.quantidade }}{% if produto.estoque_baixo %} <span class="badge badge-baixo"><i class="fa fa-arrow-down"></i> Estoque baixo</span>{% endif %}</td>
+            <td>{{ produto.data_validade|default:"—" }}</td>
+            <td>
+              {% if produto.esta_vencido %}
+                <span class="badge badge-vencido"><i class="fa fa-skull-crossbones"></i> Vencido</span>
+              {% elif produto.vencimento_proximo %}
+                <span class="badge badge-aviso"><i class="fa fa-clock"></i> Vence em {{ produto.dias_para_vencer }} dia{{ produto.dias_para_vencer|pluralize }}</span>
+              {% elif produto.data_validade %}
+                <span class="badge badge-ok"><i class="fa fa-check"></i> Normal</span>
+              {% endif %}
+            </td>
             <td class="acoes">
               {% if is_gestor %}
               <a href="{% url 'editar_produto' produto.id %}"><i class="fa fa-edit"></i> Editar</a>
@@ -219,7 +270,7 @@
           </tr>
         {% empty %}
           <tr>
-            <td colspan="5" style="text-align: center; font-style: italic; color: #555;">Nenhum produto encontrado.</td>
+            <td colspan="6" style="text-align: center; font-style: italic; color: #555;">Nenhum produto encontrado.</td>
           </tr>
         {% endfor %}
       </tbody>

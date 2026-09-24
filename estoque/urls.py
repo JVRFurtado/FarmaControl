@@ -13,6 +13,11 @@ urlpatterns = [
     path('excluir/<int:pk>/', views.excluir_produto, name='excluir_produto'),
     path('produtos/<int:produto_id>/entregar/', views.entregar_produto, name='entregar_produto'),
 
+    # Categorias
+    path('categorias/', views.lista_categorias, name='lista_categorias'),
+    path('categorias/adicionar/', views.adicionar_categoria, name='adicionar_categoria'),
+    path('categorias/excluir/<int:pk>/', views.excluir_categoria, name='excluir_categoria'),
+
 
     # Páginas de login
     path('login/', LoginRedirecionadoView.as_view(), name='login'),  # Usa sua view customizada

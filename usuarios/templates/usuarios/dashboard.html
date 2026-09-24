@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>FarmControl</title>
+  <title>FarmaControl</title>
   <style>
     body {
       margin: 0;
@@ -10,8 +10,10 @@
       background: linear-gradient(135deg, #a8edea, #fed6e3);
       display: flex;
       justify-content: center;
-      align-items: center;
-      height: 100vh;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 30px 0;
+      box-sizing: border-box;
     }
 
     .container {
@@ -97,6 +99,102 @@
       background-color: #333;
     }
 
+    .container {
+      width: 850px;
+    }
+
+    .container.com-alertas {
+      flex-direction: column;
+      height: auto;
+      max-width: 1000px;
+    }
+
+    .topo {
+      display: flex;
+      width: 100%;
+      min-height: 420px;
+    }
+
+    .cards-alerta {
+      display: flex;
+      gap: 15px;
+      padding: 25px 30px 5px 30px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .card-alerta {
+      flex: 1;
+      min-width: 140px;
+      background-color: #f7f7f7;
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      border-top: 4px solid #ccc;
+    }
+
+    .card-alerta .numero {
+      font-size: 28px;
+      font-weight: bold;
+      display: block;
+    }
+
+    .card-alerta .rotulo {
+      font-size: 13px;
+      color: #555;
+    }
+
+    .card-total { border-top-color: #228B22; }
+    .card-total .numero { color: #228B22; }
+
+    .card-baixo { border-top-color: #d4a017; }
+    .card-baixo .numero { color: #a97e00; }
+
+    .card-vencendo { border-top-color: #e08a00; }
+    .card-vencendo .numero { color: #b56b00; }
+
+    .card-vencido { border-top-color: #c0392b; }
+    .card-vencido .numero { color: #c0392b; }
+
+    .lista-alertas {
+      padding: 10px 30px 30px 30px;
+    }
+
+    .lista-alertas h4 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .item-alerta {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .item-alerta.vencido {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    .item-alerta.aviso {
+      background-color: #ffe5b4;
+      color: #8a5300;
+    }
+
+    .item-alerta.estoque_baixo {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    .sem-alertas {
+      text-align: center;
+      color: #2f7d2f;
+      padding: 10px;
+    }
+
     .logout-btn {
       margin-top: 15px;
       background-color: #f0310f;
@@ -113,11 +211,12 @@
 </head>
 <body>
 
-  <div class="container">
+  <div class="container com-alertas">
+    <div class="topo">
     <!-- Lado esquerdo -->
     <div class="left">
-      <img src="https://cdn-icons-png.flaticon.com/512/3209/3209170.png" alt="FarmControl Icon">
-      <h2>FarmControl</h2>
+      <img src="https://cdn-icons-png.flaticon.com/512/3209/3209170.png" alt="FarmaControl Icon">
+      <h2>FarmaControl</h2>
       <p>Sistema de controle de estoque da saúde</p>
       <form method="post" action="{% url 'logout' %}">
         {% csrf_token %}
@@ -132,8 +231,50 @@
         <a href="{% url 'lista_produtos' %}" class="btn">📦 Estoque</a>
         <a href="{% url 'adicionar_produto' %}" class="btn">➕ Adicionar Produto</a>
         <a href="{% url 'adicionar_medicamento' %}" class="btn">💊 Adicionar Medicamento</a>
+        <a href="{% url 'lista_categorias' %}" class="btn">🏷️ Categorias</a>
         <a href="#" class="btn btn-alt">🧾 Relatórios (em breve)</a>
       </div>
+    </div>
+    </div>
+
+    <!-- Cartões de alerta -->
+    <div class="cards-alerta">
+      <div class="card-alerta card-total">
+        <span class="numero">{{ total_produtos }}</span>
+        <span class="rotulo">Produtos cadastrados</span>
+      </div>
+      <a href="{% url 'lista_produtos' %}" style="text-decoration:none;">
+        <div class="card-alerta card-baixo">
+          <span class="numero">{{ total_estoque_baixo }}</span>
+          <span class="rotulo">Estoque baixo</span>
+        </div>
+      </a>
+      <a href="{% url 'lista_produtos' %}" style="text-decoration:none;">
+        <div class="card-alerta card-vencendo">
+          <span class="numero">{{ total_vencendo }}</span>
+          <span class="rotulo">Vencendo em breve</span>
+        </div>
+      </a>
+      <a href="{% url 'lista_produtos' %}" style="text-decoration:none;">
+        <div class="card-alerta card-vencido">
+          <span class="numero">{{ total_vencidos }}</span>
+          <span class="rotulo">Vencidos</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- Lista de alertas recentes -->
+    <div class="lista-alertas">
+      <h4>🔔 Alertas recentes</h4>
+      {% if alertas %}
+        {% for alerta in alertas %}
+          <div class="item-alerta {{ alerta.tipo }}">
+            <span><strong>{{ alerta.produto.nome }}</strong> — {{ alerta.mensagem }}</span>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="sem-alertas">✅ Nenhum alerta no momento. Tudo em dia!</div>
+      {% endif %}
     </div>
   </div>
 

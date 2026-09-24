@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Confirmar exclusão</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #a8edea, #fed6e3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .form-container {
+      background-color: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      width: 420px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #c0392b;
+      margin-bottom: 20px;
+      font-size: 1.4em;
+    }
+
+    p {
+      color: #333;
+      margin-bottom: 30px;
+    }
+
+    .botoes {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    button, .btn-cancelar {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1em;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-excluir {
+      background-color: #c0392b;
+      color: white;
+    }
+
+    .btn-cancelar {
+      background-color: #eee;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h1><i class="fa fa-triangle-exclamation"></i> Confirmar exclusão</h1>
+    <p>Tem certeza que deseja excluir a categoria <strong>{{ categoria.nome }}</strong>? Produtos que usam essa categoria ficarão sem categoria definida.</p>
+    <div class="botoes">
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn-excluir"><i class="fa fa-trash-alt"></i> Excluir</button>
+      </form>
+      <a href="{% url 'lista_categorias' %}" class="btn-cancelar">Cancelar</a>
+    </div>
+  </div>
+</body>
+</html>

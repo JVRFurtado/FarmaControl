@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FarmaControl</title>
+   
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'estoque/css/estilo.css' %}">
+
+    <!-- Aqui você pode colocar links para CSS (como Bootstrap), fontes, favicon, etc. -->
+</head>
+<body>
+    <header>
+        <nav>
+            <!-- Aqui você pode colocar a logo, nome do sistema, link para logout, etc. -->
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}
+        <!-- Cada página específica vai injetar seu conteúdo aqui -->
+        {% endblock %}
+    </main>
+
+    <footer>
+        <!-- Rodapé opcional -->
+    </footer>
+</body>
+</html>
+

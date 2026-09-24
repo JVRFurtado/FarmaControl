@@ -23,7 +23,7 @@ class Command(BaseCommand):
 
         if not User.objects.filter(username='gestor').exists():
             gestor = User.objects.create_user(
-                username='gestor', password=gestor_password, cargo='G', email='gestor@farmcontrol.local'
+                username='gestor', password=gestor_password, cargo='G', email='gestor@farmacontrol.local'
             )
             assign_role(gestor, Gestor)
             if not os.environ.get('GESTOR_INITIAL_PASSWORD'):
@@ -31,7 +31,7 @@ class Command(BaseCommand):
 
         if not User.objects.filter(username='atendente').exists():
             atendente = User.objects.create_user(
-                username='atendente', password=atendente_password, cargo='A', email='atendente@farmcontrol.local'
+                username='atendente', password=atendente_password, cargo='A', email='atendente@farmacontrol.local'
             )
             assign_role(atendente, Atendente)
             if not os.environ.get('ATENDENTE_INITIAL_PASSWORD'):
