@@ -1,7 +1,6 @@
 from datetime import date
 
-from datetime import date
-
+from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
 
@@ -99,3 +98,57 @@ class Medicamento(Produto):
 
     def __str__(self):
         return f"{self.nome} - {self.dosagem}"
+
+
+# Histórico de entregas: registra cada entrega feita a um paciente.
+class Entrega(models.Model):
+    produto = models.ForeignKey(
+        Produto, on_delete=models.SET_NULL, null=True, related_name='entregas'
+    )
+    # Guarda o nome do produto no momento da entrega, para o histórico continuar
+    # legível mesmo que o produto seja excluído depois.
+    produto_nome = models.CharField(max_length=100)
+    paciente = models.CharField(max_length=100)
+    quantidade = models.PositiveIntegerField()
+    data_entrega = models.DateField()
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+        related_name='entregas_registradas',
+    )
+    registrado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-data_entrega', '-registrado_em']
+
+    def __str__(self):
+        return f'{self.produto_nome} → {self.paciente} ({self.quantidade})'
+
+
+# Histórico de movimentações de estoque: toda entrada ou saída de quantidade,
+# de onde quer que venha (cadastro, edição, entrega, exclusão).
+class MovimentacaoEstoque(models.Model):
+    ENTRADA = 'ENTRADA'
+    SAIDA = 'SAIDA'
+    TIPO_CHOICES = [
+        (ENTRADA, 'Entrada'),
+        (SAIDA, 'Saída'),
+    ]
+
+    produto = models.ForeignKey(
+        Produto, on_delete=models.SET_NULL, null=True, related_name='movimentacoes'
+    )
+    produto_nome = models.CharField(max_length=100)
+    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
+    quantidade = models.PositiveIntegerField()
+    motivo = models.CharField(max_length=200)
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+        related_name='movimentacoes_registradas',
+    )
+    data = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-data']
+
+    def __str__(self):
+        return f'{self.get_tipo_display()} de {self.quantidade} — {self.produto_nome}'

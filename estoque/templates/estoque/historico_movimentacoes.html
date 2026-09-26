@@ -1,0 +1,160 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Histórico de Movimentações</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #a8edea, #fed6e3);
+      margin: 0;
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 950px;
+      background-color: #fff;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #228B22;
+      margin-bottom: 25px;
+    }
+
+    .filtros {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+      justify-content: center;
+    }
+
+    .filtros a {
+      padding: 8px 16px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: bold;
+      background-color: #eee;
+      color: #333;
+    }
+
+    .filtros a.ativo {
+      background-color: #228B22;
+      color: white;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+    }
+
+    th {
+      color: #228B22;
+      border-bottom: 2px solid #228B22;
+    }
+
+    tr:hover {
+      background-color: #f9f9f9;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .badge-entrada {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .badge-saida {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    .voltar {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    .voltar a {
+      background-color: #888;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><i class="fa fa-right-left"></i> Histórico de Movimentações</h1>
+
+    <div class="filtros">
+      <a href="{% url 'historico_movimentacoes' %}" class="{% if not tipo_selecionado %}ativo{% endif %}">Todas</a>
+      <a href="?tipo=ENTRADA" class="{% if tipo_selecionado == 'ENTRADA' %}ativo{% endif %}">Entradas</a>
+      <a href="?tipo=SAIDA" class="{% if tipo_selecionado == 'SAIDA' %}ativo{% endif %}">Saídas</a>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Produto</th>
+          <th>Tipo</th>
+          <th>Quantidade</th>
+          <th>Motivo</th>
+          <th>Usuário</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for mov in movimentacoes %}
+          <tr>
+            <td>{{ mov.data|date:"d/m/Y H:i" }}</td>
+            <td>{{ mov.produto_nome }}{% if not mov.produto %} <em>(produto excluído)</em>{% endif %}</td>
+            <td>
+              {% if mov.tipo == 'ENTRADA' %}
+                <span class="badge badge-entrada"><i class="fa fa-arrow-down"></i> Entrada</span>
+              {% else %}
+                <span class="badge badge-saida"><i class="fa fa-arrow-up"></i> Saída</span>
+              {% endif %}
+            </td>
+            <td>{{ mov.quantidade }}</td>
+            <td>{{ mov.motivo }}</td>
+            <td>{{ mov.usuario.username|default:"—" }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" style="text-align: center; font-style: italic; color: #555;">Nenhuma movimentação registrada.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="voltar">
+      <a href="{% url 'dashboard' %}"><i class="fa fa-arrow-left"></i> Voltar ao Início</a>
+    </div>
+  </div>
+</body>
+</html>

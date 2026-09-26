@@ -18,6 +18,10 @@ urlpatterns = [
     path('categorias/adicionar/', views.adicionar_categoria, name='adicionar_categoria'),
     path('categorias/excluir/<int:pk>/', views.excluir_categoria, name='excluir_categoria'),
 
+    # Históricos
+    path('entregas/', views.historico_entregas, name='historico_entregas'),
+    path('movimentacoes/', views.historico_movimentacoes, name='historico_movimentacoes'),
+
 
     # Páginas de login
     path('login/', LoginRedirecionadoView.as_view(), name='login'),  # Usa sua view customizada

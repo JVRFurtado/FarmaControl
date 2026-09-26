@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Produto, Medicamento, Categoria
+from .models import Produto, Medicamento, Categoria, Entrega, MovimentacaoEstoque
 from .forms import ProdutoForm, MedicamentoForm, EntregaForm, CategoriaForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -19,6 +19,21 @@ def gestor_required(view_func):
             raise PermissionDenied('Apenas o Gestor pode realizar esta ação.')
         return view_func(request, *args, **kwargs)
     return _wrapped
+
+
+def registrar_movimentacao(produto, tipo, quantidade, motivo, usuario):
+    """Registra uma entrada ou saída no histórico de movimentações de estoque.
+    Não registra nada se a quantidade for zero ou negativa (nada de fato mudou)."""
+    if not quantidade or quantidade <= 0:
+        return
+    MovimentacaoEstoque.objects.create(
+        produto=produto,
+        produto_nome=produto.nome,
+        tipo=tipo,
+        quantidade=quantidade,
+        motivo=motivo,
+        usuario=usuario if getattr(usuario, 'is_authenticated', False) else None,
+    )
 
 
 # Página inicial
@@ -69,7 +84,12 @@ def adicionar_produto(request):
                 messages.error(request, 'Produto já cadastrado com todas as mesmas informações!')
             else:
                 try:
-                    form.save()
+                    produto_salvo = form.save()
+                    if produto_salvo.quantidade and produto_salvo.quantidade > 0:
+                        registrar_movimentacao(
+                            produto_salvo, MovimentacaoEstoque.ENTRADA, produto_salvo.quantidade,
+                            'Cadastro inicial do produto', request.user,
+                        )
                     messages.success(request, 'Produto cadastrado com sucesso!')
                     return redirect('lista_produtos')
                 except IntegrityError:
@@ -103,7 +123,12 @@ def adicionar_medicamento(request):
                 messages.error(request, 'Medicamento já cadastrado com todas as mesmas informações!')
             else:
                 try:
-                    form.save()
+                    medicamento_salvo = form.save()
+                    if medicamento_salvo.quantidade and medicamento_salvo.quantidade > 0:
+                        registrar_movimentacao(
+                            medicamento_salvo, MovimentacaoEstoque.ENTRADA, medicamento_salvo.quantidade,
+                            'Cadastro inicial do medicamento', request.user,
+                        )
                     messages.success(request, 'Medicamento cadastrado com sucesso!')
                     return redirect('lista_produtos')
                 except IntegrityError:
@@ -122,11 +147,22 @@ def adicionar_medicamento(request):
 @login_required
 def editar_produto(request, pk):
     produto = get_object_or_404(Produto, pk=pk)
-    
+
     if request.method == 'POST':
+        quantidade_antes = produto.quantidade
         form = ProdutoForm(request.POST, instance=produto)  # instância passada para edição
         if form.is_valid():
-            form.save()
+            produto_editado = form.save()
+            quantidade_depois = produto_editado.quantidade
+
+            if quantidade_antes is not None and quantidade_depois is not None and quantidade_antes != quantidade_depois:
+                delta = quantidade_depois - quantidade_antes
+                tipo = MovimentacaoEstoque.ENTRADA if delta > 0 else MovimentacaoEstoque.SAIDA
+                registrar_movimentacao(
+                    produto_editado, tipo, abs(delta),
+                    'Ajuste manual na edição do produto', request.user,
+                )
+
             messages.success(request, 'Produto editado com sucesso!')
             return redirect('lista_produtos')  # volta para a lista depois de salvar
     else:
@@ -145,6 +181,12 @@ def excluir_produto(request, pk):
     if request.method != 'POST':
         # Mostra uma página de confirmação em vez de excluir direto no GET.
         return render(request, 'estoque/confirmar_exclusao.html', {'produto': produto})
+
+    if produto.quantidade:
+        registrar_movimentacao(
+            produto, MovimentacaoEstoque.SAIDA, produto.quantidade,
+            'Produto excluído do sistema', request.user,
+        )
 
     produto.delete()
     messages.success(request, 'Produto excluído com sucesso!')
@@ -167,8 +209,20 @@ def entregar_produto(request, produto_id):
             else:
                 produto.quantidade -= quantidade_entregue
                 produto.save()
-                
-                # Aqui você pode salvar os dados da entrega em um modelo, se quiser (não obrigatório)
+
+                Entrega.objects.create(
+                    produto=produto,
+                    produto_nome=produto.nome,
+                    paciente=paciente,
+                    quantidade=quantidade_entregue,
+                    data_entrega=data_entrega,
+                    usuario=request.user if request.user.is_authenticated else None,
+                )
+                registrar_movimentacao(
+                    produto, MovimentacaoEstoque.SAIDA, quantidade_entregue,
+                    f'Entrega para {paciente}', request.user,
+                )
+
                 messages.success(request, f'Entrega registrada para {paciente} ({quantidade_entregue} unidades).')
                 return redirect('lista_produtos')
     else:
@@ -217,3 +271,43 @@ def excluir_categoria(request, pk):
     categoria.delete()
     messages.success(request, 'Categoria excluída. Produtos dessa categoria ficaram sem categoria definida.')
     return redirect('lista_categorias')
+
+
+# --- Históricos ---
+
+@login_required
+def historico_entregas(request):
+    entregas = Entrega.objects.select_related('produto', 'usuario').all()
+
+    produto_id = request.GET.get('produto')
+    if produto_id:
+        entregas = entregas.filter(produto_id=produto_id)
+
+    busca = request.GET.get('buscar')
+    if busca:
+        entregas = entregas.filter(
+            Q(produto_nome__icontains=busca) | Q(paciente__icontains=busca)
+        )
+
+    return render(request, 'estoque/historico_entregas.html', {
+        'entregas': entregas,
+        'busca': busca or '',
+    })
+
+
+@login_required
+def historico_movimentacoes(request):
+    movimentacoes = MovimentacaoEstoque.objects.select_related('produto', 'usuario').all()
+
+    produto_id = request.GET.get('produto')
+    if produto_id:
+        movimentacoes = movimentacoes.filter(produto_id=produto_id)
+
+    tipo = request.GET.get('tipo')
+    if tipo in (MovimentacaoEstoque.ENTRADA, MovimentacaoEstoque.SAIDA):
+        movimentacoes = movimentacoes.filter(tipo=tipo)
+
+    return render(request, 'estoque/historico_movimentacoes.html', {
+        'movimentacoes': movimentacoes,
+        'tipo_selecionado': tipo or '',
+    })

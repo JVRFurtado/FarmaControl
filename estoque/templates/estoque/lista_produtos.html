@@ -226,6 +226,12 @@
       <a href="{% url 'lista_categorias' %}" class="botao-cinza">
         <i class="fa fa-tags"></i> Categorias
       </a>
+      <a href="{% url 'historico_entregas' %}" class="botao-cinza">
+        <i class="fa fa-truck"></i> Histórico de Entregas
+      </a>
+      <a href="{% url 'historico_movimentacoes' %}" class="botao-cinza">
+        <i class="fa fa-right-left"></i> Movimentações
+      </a>
     </div>
 
     <table>
@@ -265,6 +271,9 @@
               {% endif %}
               <a href="{% url 'entregar_produto' produto.id %}">
                 <i class="fa fa-truck"></i> Entregar
+              </a>
+              <a href="{% url 'historico_movimentacoes' %}?produto={{ produto.id }}">
+                <i class="fa fa-clock-rotate-left"></i> Histórico
               </a>
             </td>
           </tr>
