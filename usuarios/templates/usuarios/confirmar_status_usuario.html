@@ -17,18 +17,25 @@
 </head>
 <body>
   <a href="#conteudo" class="skip-link">{{ t.comum.pular_conteudo }}</a>
-  {% include 'partials/header.html' with pagina_atual='categorias' %}
+  {% include 'partials/header.html' with pagina_atual='usuarios' %}
 
   <main class="page-shell" id="conteudo">
     <div class="card confirm-wrap">
       <h1 class="card-title danger"><i class="fa fa-triangle-exclamation" aria-hidden="true"></i> {{ t.confirmar_exclusao.titulo }}</h1>
-      <p>{{ t.confirmar_exclusao.categoria_texto }} <strong>{{ categoria.nome }}</strong>? {{ t.confirmar_exclusao.aviso_categoria }}</p>
+      <p>
+        {{ t.usuarios_gestao.confirmar_desativar }}
+        {% if usuario.is_active %}<strong>{{ t.usuarios_gestao.desativar }}</strong>{% else %}<strong>{{ t.usuarios_gestao.ativar }}</strong>{% endif %}
+        {{ usuario.username }}?
+        {% if usuario.is_active %}{{ t.usuarios_gestao.desativar_aviso }}{% endif %}
+      </p>
       <div class="botoes">
         <form method="post">
           {% csrf_token %}
-          <button type="submit" class="btn btn-danger"><i class="fa fa-trash-alt" aria-hidden="true"></i> {{ t.confirmar_exclusao.btn_excluir }}</button>
+          <button type="submit" class="btn btn-danger">
+            {% if usuario.is_active %}{{ t.usuarios_gestao.desativar }}{% else %}{{ t.usuarios_gestao.ativar }}{% endif %}
+          </button>
         </form>
-        <a href="{% url 'lista_categorias' %}" class="btn btn-secondary">{{ t.confirmar_exclusao.btn_cancelar }}</a>
+        <a href="{% url 'lista_usuarios' %}" class="btn btn-secondary">{{ t.confirmar_exclusao.btn_cancelar }}</a>
       </div>
     </div>
   </main>

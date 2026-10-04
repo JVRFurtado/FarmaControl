@@ -1,96 +1,18 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="{{ idioma_atual }}">
 <head>
+  {% include 'partials/tema_init.html' %}
+  {% include 'partials/favicon.html' %}
   <meta charset="UTF-8">
-  <title>Nova Categoria</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{{ t.categorias.form_titulo }}</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'estoque/css/estilo.css' %}">
   <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #a8edea, #fed6e3);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .form-container {
-      background-color: white;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      width: 380px;
-      text-align: center;
-    }
-
-    h1 {
-      color: #228B22;
-      margin-bottom: 30px;
-      font-size: 24px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 5px;
-      color: #333;
-      font-weight: 600;
-      text-align: left;
-    }
-
-    .input-group {
-      display: flex;
-      align-items: center;
-      margin-bottom: 20px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      padding: 0 10px;
-      background-color: #fff;
-    }
-
-    .input-group i {
-      color: #999;
-      margin-right: 10px;
-    }
-
-    .input-form {
-      flex: 1;
-      border: none;
-      outline: none;
-      padding: 10px;
-      font-size: 14px;
-      background-color: transparent;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      background-color: #228B22;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #1a731a;
-    }
-
-    .back-button {
-      margin-top: 20px;
-      display: inline-block;
-      background-color: #888;
-      text-decoration: none;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 10px;
-      font-size: 14px;
-    }
-
+    .form-wrap { max-width: 400px; margin: 0 auto; }
     .errorlist {
-      color: red;
+      color: var(--danger-text);
       margin: 0 0 10px 0;
       padding-left: 0;
       list-style: none;
@@ -100,24 +22,35 @@
   </style>
 </head>
 <body>
-  <div class="form-container">
-    <h1><i class="fa fa-tags"></i> Nova Categoria</h1>
+  <a href="#conteudo" class="skip-link">{{ t.comum.pular_conteudo }}</a>
+  {% include 'partials/header.html' with pagina_atual='categorias' %}
 
-    <form method="post">
-      {% csrf_token %}
-      <input type="hidden" name="next" value="{{ next }}">
+  <main class="page-shell" id="conteudo">
+    <div class="card form-wrap">
+      <h1 class="card-title"><i class="fa fa-tags" aria-hidden="true"></i> {{ t.categorias.form_titulo }}</h1>
 
-      <label for="{{ form.nome.id_for_label }}">Nome:</label>
-      <div class="input-group">
-        <i class="fa fa-tag"></i>
-        {{ form.nome }}
-      </div>
-      {{ form.nome.errors }}
+      <p class="legenda-obrigatorio">{{ t.comum.legenda_obrigatorio }}</p>
 
-      <button type="submit"><i class="fa fa-plus-circle"></i> Cadastrar categoria</button>
-    </form>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
 
-    <a href="{{ next }}" class="back-button"><i class="fa fa-arrow-left"></i> Voltar</a>
-  </div>
+        <div class="field">
+          <label for="{{ form.nome.id_for_label }}">{{ t.categorias.form_nome }}{% if form.nome.field.required %}<span class="campo-obrigatorio" aria-hidden="true">*</span>{% endif %}</label>
+          {{ form.nome }}
+          {{ form.nome.errors }}
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-plus-circle" aria-hidden="true"></i> {{ t.categorias.form_botao }}</button>
+      </form>
+
+      <p style="text-align: center; margin-top: 18px;">
+        <a href="{{ next }}"><i class="fa fa-arrow-left" aria-hidden="true"></i> {{ t.form_produto.voltar }}</a>
+      </p>
+    </div>
+  </main>
+
+  <script src="{% static 'estoque/js/theme.js' %}"></script>
+  <script src="{% static 'estoque/js/form-validation.js' %}"></script>
 </body>
 </html>

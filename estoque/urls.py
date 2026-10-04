@@ -22,6 +22,10 @@ urlpatterns = [
     path('entregas/', views.historico_entregas, name='historico_entregas'),
     path('movimentacoes/', views.historico_movimentacoes, name='historico_movimentacoes'),
 
+    # Relatórios e análises
+    path('relatorios/', views.relatorios, name='relatorios'),
+    path('analises/', views.analises, name='analises'),
+
 
     # Páginas de login
     path('login/', LoginRedirecionadoView.as_view(), name='login'),  # Usa sua view customizada

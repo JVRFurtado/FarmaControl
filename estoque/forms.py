@@ -10,6 +10,12 @@ class CategoriaForm(forms.ModelForm):
             'nome': forms.TextInput(attrs={'class': 'input-form', 'placeholder': 'Ex.: Analgésicos'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            if field.required:
+                field.widget.attrs['required'] = 'required'
+
 
 class ProdutoForm(forms.ModelForm):
     class Meta:
@@ -27,6 +33,9 @@ class ProdutoForm(forms.ModelForm):
         self.fields['ultima_compra'].input_formats = ['%Y-%m-%d']
         self.fields['data_validade'].widget.attrs['min'] = date.today().isoformat()
         self.fields['categoria'].empty_label = 'Selecione uma categoria...'
+        for field in self.fields.values():
+            if field.required:
+                field.widget.attrs['required'] = 'required'
 
     def clean_data_validade(self):
         from datetime import date
@@ -59,6 +68,9 @@ class MedicamentoForm(forms.ModelForm):
         self.fields['ultima_compra'].input_formats = ['%Y-%m-%d']
         self.fields['data_validade'].widget.attrs['min'] = date.today().isoformat()
         self.fields['categoria'].empty_label = 'Selecione uma categoria...'
+        for field in self.fields.values():
+            if field.required:
+                field.widget.attrs['required'] = 'required'
 
     def clean_data_validade(self):
         from datetime import date
@@ -74,6 +86,6 @@ class MedicamentoForm(forms.ModelForm):
         return quantidade
 
 class EntregaForm(forms.Form):
-    paciente = forms.CharField(label="Para quem", max_length=100)
-    data_entrega = forms.DateField(label="Data da Entrega", widget=forms.DateInput(attrs={'type': 'date'}))
-    quantidade = forms.IntegerField(label="Quantidade", min_value=1)
+    paciente = forms.CharField(label="Para quem", max_length=100, widget=forms.TextInput(attrs={'required': 'required'}))
+    data_entrega = forms.DateField(label="Data da Entrega", widget=forms.DateInput(attrs={'type': 'date', 'required': 'required'}))
+    quantidade = forms.IntegerField(label="Quantidade", min_value=1, widget=forms.NumberInput(attrs={'required': 'required'}))

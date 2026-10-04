@@ -1,160 +1,82 @@
-{% load static %}
+{% load static i18n_extras %}
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="{{ idioma_atual }}">
 <head>
+  {% include 'partials/tema_init.html' %}
+  {% include 'partials/favicon.html' %}
   <meta charset="UTF-8">
-  <title>Histórico de Movimentações</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{{ t.movimentacoes_hist.titulo }}</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'estoque/css/estilo.css' %}">
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #a8edea, #fed6e3);
-      margin: 0;
-      padding: 40px;
-      display: flex;
-      justify-content: center;
-      min-height: 100vh;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 950px;
-      background-color: #fff;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-    }
-
-    h1 {
-      text-align: center;
-      color: #228B22;
-      margin-bottom: 25px;
-    }
-
-    .filtros {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 25px;
-      justify-content: center;
-    }
-
+    .hist-wrap { max-width: 950px; margin: 0 auto; }
+    .filtros { display: flex; gap: 10px; margin-bottom: 22px; justify-content: center; flex-wrap: wrap; }
     .filtros a {
       padding: 8px 16px;
       border-radius: 999px;
       text-decoration: none;
       font-size: 13px;
       font-weight: bold;
-      background-color: #eee;
-      color: #333;
+      background-color: var(--surface-muted);
+      color: var(--text);
     }
-
-    .filtros a.ativo {
-      background-color: #228B22;
-      color: white;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th, td {
-      padding: 10px 12px;
-      text-align: left;
-      border-bottom: 1px solid #eee;
-      font-size: 14px;
-    }
-
-    th {
-      color: #228B22;
-      border-bottom: 2px solid #228B22;
-    }
-
-    tr:hover {
-      background-color: #f9f9f9;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: bold;
-    }
-
-    .badge-entrada {
-      background-color: #d4edda;
-      color: #155724;
-    }
-
-    .badge-saida {
-      background-color: #f8d7da;
-      color: #721c24;
-    }
-
-    .voltar {
-      margin-top: 30px;
-      text-align: center;
-    }
-
-    .voltar a {
-      background-color: #888;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 10px;
-      text-decoration: none;
-      font-size: 15px;
-    }
+    .filtros a.ativo { background-color: var(--brand); color: var(--text-on-brand); }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1><i class="fa fa-right-left"></i> Histórico de Movimentações</h1>
+  <a href="#conteudo" class="skip-link">{{ t.comum.pular_conteudo }}</a>
+  {% include 'partials/header.html' with pagina_atual='movimentacoes' %}
 
-    <div class="filtros">
-      <a href="{% url 'historico_movimentacoes' %}" class="{% if not tipo_selecionado %}ativo{% endif %}">Todas</a>
-      <a href="?tipo=ENTRADA" class="{% if tipo_selecionado == 'ENTRADA' %}ativo{% endif %}">Entradas</a>
-      <a href="?tipo=SAIDA" class="{% if tipo_selecionado == 'SAIDA' %}ativo{% endif %}">Saídas</a>
+  <main class="page-shell" id="conteudo">
+    <div class="card hist-wrap">
+      <h1 class="card-title"><i class="fa fa-right-left" aria-hidden="true"></i> {{ t.movimentacoes_hist.titulo }}</h1>
+
+      <div class="filtros">
+        <a href="{% url 'historico_movimentacoes' %}" class="{% if not tipo_selecionado %}ativo{% endif %}">{{ t.movimentacoes_hist.filtro_todas }}</a>
+        <a href="?tipo=ENTRADA" class="{% if tipo_selecionado == 'ENTRADA' %}ativo{% endif %}">{{ t.movimentacoes_hist.filtro_entradas }}</a>
+        <a href="?tipo=SAIDA" class="{% if tipo_selecionado == 'SAIDA' %}ativo{% endif %}">{{ t.movimentacoes_hist.filtro_saidas }}</a>
+      </div>
+
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th scope="col">{{ t.movimentacoes_hist.col_data }}</th>
+              <th scope="col">{{ t.movimentacoes_hist.col_produto }}</th>
+              <th scope="col">{{ t.movimentacoes_hist.col_tipo }}</th>
+              <th scope="col">{{ t.movimentacoes_hist.col_quantidade }}</th>
+              <th scope="col">{{ t.movimentacoes_hist.col_motivo }}</th>
+              <th scope="col">{{ t.movimentacoes_hist.col_usuario }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for mov in movimentacoes %}
+              <tr>
+                <td>{{ mov.data|data_hora_localizada:idioma_atual }}</td>
+                <td>{{ mov.produto_nome }}{% if not mov.produto %} <em>{{ t.movimentacoes_hist.produto_excluido }}</em>{% endif %}</td>
+                <td>
+                  {% if mov.tipo == 'ENTRADA' %}
+                    <span class="badge badge-success"><i class="fa fa-arrow-down" aria-hidden="true"></i> {{ t.movimentacoes_hist.tipo_entrada }}</span>
+                  {% else %}
+                    <span class="badge badge-danger"><i class="fa fa-arrow-up" aria-hidden="true"></i> {{ t.movimentacoes_hist.tipo_saida }}</span>
+                  {% endif %}
+                </td>
+                <td>{{ mov.quantidade }}</td>
+                <td>{{ mov.motivo_exibicao }}</td>
+                <td>{{ mov.usuario.username|default:"—" }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" style="text-align: center; font-style: italic; color: var(--text-muted);">{{ t.movimentacoes_hist.nenhuma }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
+  </main>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Produto</th>
-          <th>Tipo</th>
-          <th>Quantidade</th>
-          <th>Motivo</th>
-          <th>Usuário</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for mov in movimentacoes %}
-          <tr>
-            <td>{{ mov.data|date:"d/m/Y H:i" }}</td>
-            <td>{{ mov.produto_nome }}{% if not mov.produto %} <em>(produto excluído)</em>{% endif %}</td>
-            <td>
-              {% if mov.tipo == 'ENTRADA' %}
-                <span class="badge badge-entrada"><i class="fa fa-arrow-down"></i> Entrada</span>
-              {% else %}
-                <span class="badge badge-saida"><i class="fa fa-arrow-up"></i> Saída</span>
-              {% endif %}
-            </td>
-            <td>{{ mov.quantidade }}</td>
-            <td>{{ mov.motivo }}</td>
-            <td>{{ mov.usuario.username|default:"—" }}</td>
-          </tr>
-        {% empty %}
-          <tr>
-            <td colspan="6" style="text-align: center; font-style: italic; color: #555;">Nenhuma movimentação registrada.</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
-    <div class="voltar">
-      <a href="{% url 'dashboard' %}"><i class="fa fa-arrow-left"></i> Voltar ao Início</a>
-    </div>
-  </div>
+  <script src="{% static 'estoque/js/theme.js' %}"></script>
 </body>
 </html>

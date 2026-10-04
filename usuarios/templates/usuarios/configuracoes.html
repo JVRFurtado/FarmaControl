@@ -1,9 +1,31 @@
-{% extends 'base.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="{{ idioma_atual }}">
+<head>
+  {% include 'partials/tema_init.html' %}
+  {% include 'partials/favicon.html' %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{{ t.configuracoes.titulo }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'estoque/css/estilo.css' %}">
+  <style>
+    .config-wrap { max-width: 480px; margin: 0 auto; text-align: center; }
+    .config-wrap p { color: var(--text-muted); margin-bottom: 24px; }
+  </style>
+</head>
+<body>
+  <a href="#conteudo" class="skip-link">{{ t.comum.pular_conteudo }}</a>
+  {% include 'partials/header.html' with pagina_atual='dashboard' %}
 
-{% block content %}
-<div class="container mt-5 text-center">
-    <h1>Configurações</h1>
-    <p>Aqui você pode colocar as opções de configuração do sistema (em breve).</p>
-</div>
-{% endblock %}
+  <main class="page-shell" id="conteudo">
+    <div class="card config-wrap">
+      <h1 class="card-title"><i class="fa fa-gear" aria-hidden="true"></i> {{ t.configuracoes.titulo }}</h1>
+      <p>{{ t.configuracoes.texto }}</p>
+      <a href="{% url 'dashboard' %}" class="btn btn-secondary"><i class="fa fa-arrow-left" aria-hidden="true"></i> {{ t.comum.voltar_inicio }}</a>
+    </div>
+  </main>
 
+  <script src="{% static 'estoque/js/theme.js' %}"></script>
+</body>
+</html>

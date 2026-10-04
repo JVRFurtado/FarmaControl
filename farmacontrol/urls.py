@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from usuarios.views import LoginRedirecionadoView
 from usuarios import views 
+from . import views as views_farmacontrol
 
 urlpatterns = [
     # Página inicial o login
@@ -15,6 +16,7 @@ urlpatterns = [
     #rotas de autenticação padrão do django
     path('auth/', include('django.contrib.auth.urls')),
 
-    
+    # Troca de idioma (manual) — funciona em qualquer página via POST
+    path('idioma/<str:codigo>/', views_farmacontrol.mudar_idioma, name='mudar_idioma'),
 ]
 

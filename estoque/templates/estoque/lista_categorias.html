@@ -1,130 +1,71 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="{{ idioma_atual }}">
 <head>
+  {% include 'partials/tema_init.html' %}
+  {% include 'partials/favicon.html' %}
   <meta charset="UTF-8">
-  <title>Categorias</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{{ t.categorias.titulo }}</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'estoque/css/estilo.css' %}">
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #a8edea, #fed6e3);
-      margin: 0;
-      padding: 40px;
-      display: flex;
-      justify-content: center;
-      min-height: 100vh;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 600px;
-      background-color: #fff;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-    }
-
-    h1 {
-      text-align: center;
-      color: #228B22;
-      margin-bottom: 30px;
-    }
-
-    .actions {
-      text-align: center;
-      margin-bottom: 25px;
-    }
-
-    .actions a {
-      display: inline-block;
-      padding: 12px 24px;
-      border-radius: 10px;
-      text-decoration: none;
-      font-weight: bold;
-      background-color: #228B22;
-      color: white;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    li {
+    .cat-wrap { max-width: 600px; margin: 0 auto; }
+    .actions { text-align: center; margin-bottom: 25px; }
+    ul.cat-list { list-style: none; padding: 0; margin: 0; }
+    ul.cat-list li {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 14px;
-      border-bottom: 1px solid #e0e0e0;
+      border-bottom: 1px solid var(--border);
     }
-
-    li form {
-      display: inline;
-      margin: 0;
-    }
-
+    ul.cat-list li form { display: inline; margin: 0; }
     .link-excluir {
-      background: none;
-      border: none;
-      color: #c0392b;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 1em;
+      background: none; border: none; color: var(--danger-text);
+      font-weight: bold; cursor: pointer; font-size: 1em;
     }
-
-    .link-excluir:hover {
-      text-decoration: underline;
-    }
-
-    .voltar {
-      margin-top: 30px;
-      text-align: center;
-    }
-
-    .voltar a {
-      background-color: #888;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 10px;
-      text-decoration: none;
-      font-size: 15px;
-    }
+    .link-excluir:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1><i class="fa fa-tags"></i> Categorias</h1>
+  <a href="#conteudo" class="skip-link">{{ t.comum.pular_conteudo }}</a>
+  {% include 'partials/header.html' with pagina_atual='categorias' %}
 
-    {% if messages %}
-      {% for message in messages %}
-        <div style="padding: 10px; border-radius: 8px; margin-bottom: 8px; background-color: #d4edda; color: #155724;">{{ message }}</div>
-      {% endfor %}
-    {% endif %}
+  <main class="page-shell" id="conteudo">
+    <div class="card cat-wrap">
+      <h1 class="card-title"><i class="fa fa-tags" aria-hidden="true"></i> {{ t.categorias.titulo }}</h1>
 
-    <div class="actions">
-      <a href="{% url 'adicionar_categoria' %}"><i class="fa fa-plus-circle"></i> Nova categoria</a>
+      {% if messages %}
+        <div role="status" aria-live="polite">
+          {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="actions">
+        <a href="{% url 'adicionar_categoria' %}" class="btn btn-primary"><i class="fa fa-plus-circle" aria-hidden="true"></i> {{ t.categorias.nova }}</a>
+      </div>
+
+      <ul class="cat-list">
+        {% for categoria in categorias %}
+          <li>
+            <span>{{ categoria.nome }}</span>
+            {% if request.user.cargo == 'G' %}
+            <form action="{% url 'excluir_categoria' categoria.id %}" method="post" onsubmit="return confirm('{{ t.categorias.excluir }}?')">
+              {% csrf_token %}
+              <button type="submit" class="link-excluir"><i class="fa fa-trash-alt" aria-hidden="true"></i> {{ t.categorias.excluir }}</button>
+            </form>
+            {% endif %}
+          </li>
+        {% empty %}
+          <li style="justify-content: center; font-style: italic; color: var(--text-muted);">{{ t.categorias.nenhuma }}</li>
+        {% endfor %}
+      </ul>
     </div>
+  </main>
 
-    <ul>
-      {% for categoria in categorias %}
-        <li>
-          <span>{{ categoria.nome }}</span>
-          {% if is_gestor %}
-          <form action="{% url 'excluir_categoria' categoria.id %}" method="post" onsubmit="return confirm('Excluir esta categoria? Produtos que a usam ficarão sem categoria.')">
-            {% csrf_token %}
-            <button type="submit" class="link-excluir"><i class="fa fa-trash-alt"></i> Excluir</button>
-          </form>
-          {% endif %}
-        </li>
-      {% empty %}
-        <li style="justify-content: center; font-style: italic; color: #555;">Nenhuma categoria cadastrada.</li>
-      {% endfor %}
-    </ul>
-
-    <div class="voltar">
-      <a href="{% url 'dashboard' %}"><i class="fa fa-arrow-left"></i> Voltar ao Início</a>
-    </div>
-  </div>
+  <script src="{% static 'estoque/js/theme.js' %}"></script>
 </body>
 </html>

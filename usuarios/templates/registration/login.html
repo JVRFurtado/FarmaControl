@@ -1,257 +1,146 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="{{ idioma_atual }}">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FarmaControl - Login</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-  
-  
+  {% include 'partials/tema_init.html' %}
+  {% include 'partials/favicon.html' %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{{ t.login.titulo }} — {{ t.login.entrar_titulo }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'estoque/css/estilo.css' %}">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
     body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(125deg, #a8edea, #fed6e3); 
-      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .topo-simples {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 16px 20px;
+    }
+
+    .login-wrap {
+      flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 20px;
     }
 
-    .container {
-      background: white;
-      width: 900px; /* aumentei a largura do container */
-      height: 550px;
-      border-radius: 20px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-      display: flex;
-      overflow: hidden;
-    }
-
-    .left-panel {
-      background: #f0fcf9;
-      flex: 1.2;
-      padding: 60px 40px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      color: #2f8373;
-    }
-
-    .left-panel img {
-      width: 80px;
-      margin-bottom: 30px;
-    }
-
-    .left-panel h1 {
-      font-size: 40px;
-      font-weight: 700;
-      text-align: center;
-    }
-
-    .left-panel p {
-      margin-top: 10px;
-      font-size: 18px;
-      text-align: center;
-    }
-
-    .right-panel {
-      flex: 1.1; /* aumentei um pouco a proporção do painel da direita */
-      padding: 60px 40px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      min-width: 320px; /* aumentei a largura mínima */
-      overflow: hidden;
-    }
-
-    .right-panel h2 {
-      font-size: 32px; /* aumentei o tamanho da fonte */
-      color: #2f8373;
-      margin-bottom: 10px;
-      white-space: nowrap;
-    }
-
-    .right-panel p {
-      font-size: 14px;
-      color: #6b6b6b;
-      margin-bottom: 25px;
-    }
-
-    label {
-      display: block;
-      font-size: 14px;
-      font-weight: 600;
-      color: #2f8373;
-      margin-bottom: 6px;
-      margin-top: 12px;
-    }
-
-    input[type="text"],
-    input[type="password"] {
+    .login-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      max-width: 900px;
       width: 100%;
-      padding: 12px 16px;
-      margin-bottom: 10px;
-      border: 1.5px solid #b8e2db;
-      border-radius: 8px;
-      font-size: 14px;
-      outline: none;
-      color: #2f8373;
+      overflow: hidden;
     }
 
-    input:focus {
-      border-color: #45a198;
-    }
-
-    .options {
+    .login-hero {
+      background: var(--brand-light);
+      color: var(--brand-dark);
+      padding: 50px 40px;
       display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 16px;
+    }
+
+    .login-hero img { width: 80px; height: 80px; }
+    .login-hero h1 { font-size: 32px; margin: 0; }
+    .login-hero p { margin: 0; font-size: 16px; }
+
+    .login-form-side {
+      padding: 50px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .login-form-side h2 { color: var(--brand); margin: 0 0 6px 0; font-size: 26px; }
+    .login-form-side > p { color: var(--text-muted); margin: 0 0 24px 0; font-size: 14px; }
+
+    .options-row {
+      display: flex;
+      align-items: center;
       justify-content: space-between;
-      align-items: center;
+      margin: 4px 0 20px 0;
       font-size: 13px;
-      margin: 15px 0 20px;
     }
 
-    .options label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    .options-row label { display: flex; align-items: center; gap: 6px; font-weight: normal; }
 
-    .options a {
-      color: #2f8373;
-      text-decoration: underline;
-      cursor: pointer;
-    }
-
-    button.primary {
-      width: 100%;
-      padding: 14px;
-      background: #2f8373;
-      border: none;
-      color: white;
-      font-weight: 600;
-      font-size: 16px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    button.primary:hover {
-      background: #276f61;
-    }
-
-    .divider {
-      margin: 20px 0;
-      text-align: center;
-      color: #999;
-      position: relative;
-    }
-
-    .divider::before,
-    .divider::after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      width: 40%;
-      height: 1px;
-      background: #ccc;
-    }
-
-    .divider::before {
-      left: 0;
-    }
-
-    .divider::after {
-      right: 0;
-    }
-
-    button.secondary {
-      width: 100%;
-      padding: 14px;
-      background: transparent;
-      border: 2px solid #2f8373;
-      color: #2f8373;
-      font-weight: 600;
-      font-size: 16px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    button.secondary:hover {
-      background: #2f8373;
-      color: white;
-    }
-
-    .signup {
-      text-align: center;
-      font-size: 12px;
-      color: #6b6b6b;
-      margin-top: 30px;
-    }
-
-    .signup a {
-      color: #2f8373;
-      text-decoration: none;
-      font-weight: 600;
-    }
-
-    .signup a:hover {
-      text-decoration: underline;
+    @media (max-width: 720px) {
+      .login-card { grid-template-columns: 1fr; }
+      .login-hero { padding: 30px 24px; }
+      .login-form-side { padding: 30px 24px; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="left-panel">
-      <img src="https://cdn-icons-png.flaticon.com/512/3209/3209170.png" alt="FarmaControl Icon">
-      <h1>FarmaControl</h1>
-      <p>Bem-vindo ao sistema de controle de estoque da saúde</p>
-    </div>
-    <div class="right-panel">
-      <h2>Login</h2>
-      <p>Entre para continuar sua experiência</p>
-      {% if form.non_field_errors %}
-        <div style="color: red; margin-bottom: 15px; font-size: 14px;">
-          {% for error in form.non_field_errors %}
-            {{ error }}
-          {% endfor %}
-        </div>
-    {% endif %}
-
-     <form method="POST">
-      {% csrf_token %}
-
-  <label for="username">Usuário</label>
-  <input type="text" id="username" name="username" placeholder="Digite seu usuário" required />
-
-  <label for="password">Senha</label>
-  <input type="password" id="password" name="password" placeholder="Digite sua senha" required />
-
-  <div class="options">
-    <label><input type="checkbox" name="remember" /> Lembrar-me</label>
-    <!--a href="#">Esqueci a senha</a-->
+  <div class="topo-simples">
+    <select class="lang-select" aria-label="{{ t.nav.idioma }}" aria-describedby="idioma-ajuda-login" onchange="window.location.href = this.value">
+      {% for codigo, rotulo in idiomas_disponiveis %}
+        <option value="{% url 'mudar_idioma' codigo %}?next={{ request.path|urlencode }}" {% if codigo == idioma_atual %}selected{% endif %}>{{ rotulo }}</option>
+      {% endfor %}
+    </select>
+    <span id="idioma-ajuda-login" class="sr-only">{{ t.nav.idioma_ajuda }}</span>
+    <button type="button" id="theme-toggle" class="icon-btn" aria-label="{{ t.nav.mudar_tema }}" aria-pressed="false">🌙</button>
   </div>
 
-  <button type="submit" class="primary">Entrar</button>
+  <a href="#conteudo-login" class="skip-link">{{ t.comum.pular_conteudo }}</a>
 
-  <!--div class="divider">ou</div-->
+  <div class="login-wrap" id="conteudo-login">
+    <div class="login-card">
+      <div class="login-hero">
+        <img src="https://cdn-icons-png.flaticon.com/512/3209/3209170.png" alt="" width="80" height="80">
+        <h1>{{ t.login.titulo }}</h1>
+        <p>{{ t.login.subtitulo }}</p>
+      </div>
 
-  <!--button type="button" class="secondary">Entrar com outro método</button-->
-</form>
+      <div class="login-form-side">
+        <h2>{{ t.login.entrar_titulo }}</h2>
+        <p>{{ t.login.entrar_subtitulo }}</p>
 
+        {% if form.non_field_errors %}
+          <div role="alert" class="alert alert-error">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+          </div>
+        {% endif %}
 
+        <form method="POST" novalidate>
+          {% csrf_token %}
 
-      <!--div class="signup">
-        Não tem uma conta? <a href="#">Cadastre-se</a>
-      </div-->
+          <div class="field">
+            <label for="username">{{ t.login.usuario }}</label>
+            <input type="text" id="username" name="username" placeholder="{{ t.login.usuario_placeholder }}" required autofocus>
+          </div>
+
+          <div class="field">
+            <label for="password">{{ t.login.senha }}</label>
+            <input type="password" id="password" name="password" placeholder="{{ t.login.senha_placeholder }}" required>
+          </div>
+
+          <div class="options-row">
+            <label><input type="checkbox" name="remember"> {{ t.login.lembrar }}</label>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">{{ t.login.botao_entrar }}</button>
+        </form>
+      </div>
     </div>
   </div>
+
+  <script src="{% static 'estoque/js/theme.js' %}"></script>
 </body>
 </html>

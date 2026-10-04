@@ -1,0 +1,13 @@
+<script>
+  // Aplica o tema salvo (se a pessoa já escolheu manualmente) antes da página
+  // pintar, evitando o "flash" de tema errado. Se nada foi salvo, não faz
+  // nada aqui — o CSS já detecta automaticamente via prefers-color-scheme.
+  (function () {
+    try {
+      var salvo = localStorage.getItem('farmacontrol-tema');
+      if (salvo === 'dark' || salvo === 'light') {
+        document.documentElement.setAttribute('data-theme', salvo);
+      }
+    } catch (e) { /* localStorage indisponível (modo privado, etc.) — segue com o automático */ }
+  })();
+</script>

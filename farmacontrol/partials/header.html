@@ -1,0 +1,46 @@
+{% load static %}
+<header class="app-header">
+  <div class="app-header__bar">
+    <a href="{% url 'dashboard' %}" class="app-header__brand">
+      <img src="https://cdn-icons-png.flaticon.com/512/3209/3209170.png" alt="" width="28" height="28">
+      {{ t.login.titulo }}
+    </a>
+
+    <input type="checkbox" id="nav-toggle" class="nav-toggle-checkbox">
+    <label for="nav-toggle" class="nav-toggle-label" aria-label="{{ t.nav.menu }}">
+      <i class="fa fa-bars" aria-hidden="true"></i>
+    </label>
+
+    <nav class="app-header__nav" aria-label="{{ t.nav.menu }}">
+      <a href="{% url 'dashboard' %}" {% if pagina_atual == 'dashboard' %}aria-current="page"{% endif %}>{{ t.nav.dashboard }}</a>
+      <a href="{% url 'lista_produtos' %}" {% if pagina_atual == 'produtos' %}aria-current="page"{% endif %}>{{ t.nav.estoque }}</a>
+      <a href="{% url 'lista_categorias' %}" {% if pagina_atual == 'categorias' %}aria-current="page"{% endif %}>{{ t.nav.categorias }}</a>
+      <a href="{% url 'historico_entregas' %}" {% if pagina_atual == 'entregas' %}aria-current="page"{% endif %}>{{ t.nav.entregas }}</a>
+      <a href="{% url 'historico_movimentacoes' %}" {% if pagina_atual == 'movimentacoes' %}aria-current="page"{% endif %}>{{ t.nav.movimentacoes }}</a>
+      <a href="{% url 'relatorios' %}" {% if pagina_atual == 'relatorios' %}aria-current="page"{% endif %}>{{ t.nav.relatorios }}</a>
+      <a href="{% url 'analises' %}" {% if pagina_atual == 'analises' %}aria-current="page"{% endif %}>{{ t.nav.analises }}</a>
+      {% if request.user.cargo == 'G' %}
+        <a href="{% url 'lista_usuarios' %}" {% if pagina_atual == 'usuarios' %}aria-current="page"{% endif %}>{{ t.nav.usuarios }}</a>
+      {% endif %}
+    </nav>
+
+    <div class="app-header__actions">
+      <select class="lang-select" aria-label="{{ t.nav.idioma }}" aria-describedby="idioma-ajuda"
+              onchange="window.location.href = this.value">
+        {% for codigo, rotulo in idiomas_disponiveis %}
+          <option value="{% url 'mudar_idioma' codigo %}?next={{ request.path|urlencode }}" {% if codigo == idioma_atual %}selected{% endif %}>
+            {{ rotulo }}
+          </option>
+        {% endfor %}
+      </select>
+      <span id="idioma-ajuda" class="sr-only">{{ t.nav.idioma_ajuda }}</span>
+
+      <button type="button" id="theme-toggle" class="icon-btn" aria-label="{{ t.nav.mudar_tema }}" aria-pressed="false">🌙</button>
+
+      <form method="post" action="{% url 'logout' %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-secondary">{{ t.nav.sair }}</button>
+      </form>
+    </div>
+  </div>
+</header>

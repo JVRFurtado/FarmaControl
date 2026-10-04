@@ -1,135 +1,135 @@
-{% load static %}
+{% load static i18n_extras %}
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="{{ idioma_atual }}">
 <head>
+  {% include 'partials/tema_init.html' %}
+  {% include 'partials/favicon.html' %}
   <meta charset="UTF-8">
-  <title>Histórico de Entregas</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{{ t.entregas_hist.titulo }}</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'estoque/css/estilo.css' %}">
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #a8edea, #fed6e3);
-      margin: 0;
-      padding: 40px;
+    .hist-wrap { max-width: 900px; margin: 0 auto; }
+
+    .filtros-painel {
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 22px;
+    }
+    .filtros-painel__titulo {
       display: flex;
-      justify-content: center;
-      min-height: 100vh;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0 0 14px 0;
     }
-
-    .container {
+    .filtros-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: end;
+    }
+    .campo-filtro label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .campo-filtro .input-icone { position: relative; }
+    .campo-filtro .input-icone i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 13px;
+      pointer-events: none;
+    }
+    .busca-form input[type="text"] {
       width: 100%;
-      max-width: 900px;
-      background-color: #fff;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-    }
-
-    h1 {
-      text-align: center;
-      color: #228B22;
-      margin-bottom: 25px;
-    }
-
-    form.busca {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 25px;
-    }
-
-    form.busca input[type="text"] {
-      flex: 1;
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
-
-    form.busca button {
-      padding: 10px 18px;
-      border-radius: 10px;
-      border: none;
-      background-color: #228B22;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th, td {
+      height: 42px;
       padding: 10px 12px;
-      text-align: left;
-      border-bottom: 1px solid #eee;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
       font-size: 14px;
     }
-
-    th {
-      color: #228B22;
-      border-bottom: 2px solid #228B22;
+    .busca-form .campo-filtro .input-icone input[type="text"] {
+      padding-left: 36px;
     }
+    .busca-form input[type="text"]:focus { border-color: var(--brand); }
+    .filtros-grid .btn-filtrar { height: 42px; white-space: nowrap; }
 
-    tr:hover {
-      background-color: #f9f9f9;
-    }
-
-    .voltar {
-      margin-top: 30px;
-      text-align: center;
-    }
-
-    .voltar a {
-      background-color: #888;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 10px;
-      text-decoration: none;
-      font-size: 15px;
+    @media (max-width: 700px) {
+      .filtros-grid { grid-template-columns: 1fr; }
+      .filtros-grid .btn-filtrar { justify-content: center; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1><i class="fa fa-truck"></i> Histórico de Entregas</h1>
+  <a href="#conteudo" class="skip-link">{{ t.comum.pular_conteudo }}</a>
+  {% include 'partials/header.html' with pagina_atual='entregas' %}
 
-    <form class="busca" method="get">
-      <input type="text" name="buscar" placeholder="Buscar por produto ou paciente..." value="{{ busca }}">
-      <button type="submit"><i class="fa fa-search"></i> Buscar</button>
-    </form>
+  <main class="page-shell" id="conteudo">
+    <div class="card hist-wrap">
+      <h1 class="card-title"><i class="fa fa-truck" aria-hidden="true"></i> {{ t.entregas_hist.titulo }}</h1>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Produto</th>
-          <th>Paciente</th>
-          <th>Quantidade</th>
-          <th>Registrado por</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for entrega in entregas %}
-          <tr>
-            <td>{{ entrega.data_entrega|date:"d/m/Y" }}</td>
-            <td>{{ entrega.produto_nome }}{% if not entrega.produto %} <em>(produto excluído)</em>{% endif %}</td>
-            <td>{{ entrega.paciente }}</td>
-            <td>{{ entrega.quantidade }}</td>
-            <td>{{ entrega.usuario.username|default:"—" }}</td>
-          </tr>
-        {% empty %}
-          <tr>
-            <td colspan="5" style="text-align: center; font-style: italic; color: #555;">Nenhuma entrega registrada.</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+      <div class="filtros-painel">
+        <p class="filtros-painel__titulo"><i class="fa fa-sliders" aria-hidden="true"></i> {{ t.entregas_hist.buscar_botao }}</p>
+        <form class="busca-form" method="get" role="search">
+          <div class="filtros-grid">
+            <div class="campo-filtro">
+              <label for="buscar">{{ t.entregas_hist.buscar_placeholder }}</label>
+              <div class="input-icone">
+                <i class="fa fa-search" aria-hidden="true"></i>
+                <input type="text" id="buscar" name="buscar" placeholder="{{ t.entregas_hist.buscar_placeholder }}" value="{{ busca }}">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-filtrar"><i class="fa fa-search" aria-hidden="true"></i> {{ t.entregas_hist.buscar_botao }}</button>
+          </div>
+        </form>
+      </div>
 
-    <div class="voltar">
-      <a href="{% url 'dashboard' %}"><i class="fa fa-arrow-left"></i> Voltar ao Início</a>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th scope="col">{{ t.entregas_hist.col_data }}</th>
+              <th scope="col">{{ t.entregas_hist.col_produto }}</th>
+              <th scope="col">{{ t.entregas_hist.col_paciente }}</th>
+              <th scope="col">{{ t.entregas_hist.col_quantidade }}</th>
+              <th scope="col">{{ t.entregas_hist.col_registrado_por }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entrega in entregas %}
+              <tr>
+                <td>{{ entrega.data_entrega|data_localizada:idioma_atual }}</td>
+                <td>{{ entrega.produto_nome }}{% if not entrega.produto %} <em>{{ t.entregas_hist.produto_excluido }}</em>{% endif %}</td>
+                <td>{{ entrega.paciente }}</td>
+                <td>{{ entrega.quantidade }}</td>
+                <td>{{ entrega.usuario.username|default:"—" }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5" style="text-align: center; font-style: italic; color: var(--text-muted);">{{ t.entregas_hist.nenhuma }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
+  </main>
+
+  <script src="{% static 'estoque/js/theme.js' %}"></script>
 </body>
 </html>

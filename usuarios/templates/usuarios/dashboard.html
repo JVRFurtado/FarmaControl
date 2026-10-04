@@ -1,273 +1,119 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="{{ idioma_atual }}">
 <head>
+  {% include 'partials/tema_init.html' %}
+  {% include 'partials/favicon.html' %}
   <meta charset="UTF-8">
-  <title>FarmaControl</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{{ t.login.titulo }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'estoque/css/estilo.css' %}">
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #a8edea, #fed6e3);
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-      padding: 30px 0;
-      box-sizing: border-box;
-    }
-
-    .container {
-      display: flex;
-      width: 850px;
-      height: 500px;
-      background-color: white;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
-      overflow: hidden;
-    }
-
-    .left {
-      background-color: #e8f8e8;
-      width: 40%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .left img {
-      width: 80px;
-    }
-
-    .left h2 {
-      margin-top: 15px;
-      color: #2f7d2f;
-    }
-
-    .left p {
-      margin: 10px 0;
-      text-align: center;
-      color: #555;
-    }
-
-    .right {
-      width: 60%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 30px;
-    }
-
-    .right h3 {
-      margin-bottom: 30px;
-      color: #333;
-    }
-
-    .buttons {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .btn {
-      width: 90%;
-      max-width: 300px;
-      padding: 15px;
-      font-size: 16px;
-      background-color: #2f7d2f;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      text-align: center;
-      text-decoration: none;
-    }
-
-    .btn:hover {
-      background-color: #256c25;
-    }
-
-    .btn-alt {
-      background-color: #555;
-    }
-
-    .btn-alt:hover {
-      background-color: #333;
-    }
-
-    .container {
-      width: 850px;
-    }
-
-    .container.com-alertas {
-      flex-direction: column;
-      height: auto;
-      max-width: 1000px;
-    }
-
-    .topo {
-      display: flex;
-      width: 100%;
-      min-height: 420px;
-    }
-
     .cards-alerta {
-      display: flex;
-      gap: 15px;
-      padding: 25px 30px 5px 30px;
-      flex-wrap: wrap;
-      justify-content: center;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
     }
 
     .card-alerta {
-      flex: 1;
-      min-width: 140px;
-      background-color: #f7f7f7;
-      border-radius: 14px;
-      padding: 16px;
+      background: var(--surface-muted);
+      border-radius: var(--radius-sm);
+      padding: 18px;
       text-align: center;
-      border-top: 4px solid #ccc;
-    }
-
-    .card-alerta .numero {
-      font-size: 28px;
-      font-weight: bold;
+      border-top: 4px solid var(--border);
+      text-decoration: none;
       display: block;
+      color: inherit;
     }
 
-    .card-alerta .rotulo {
-      font-size: 13px;
-      color: #555;
-    }
+    .card-alerta .numero { font-size: 30px; font-weight: 800; display: block; }
+    .card-alerta .rotulo { font-size: 13px; color: var(--text-muted); }
 
-    .card-total { border-top-color: #228B22; }
-    .card-total .numero { color: #228B22; }
-
-    .card-baixo { border-top-color: #d4a017; }
-    .card-baixo .numero { color: #a97e00; }
-
-    .card-vencendo { border-top-color: #e08a00; }
-    .card-vencendo .numero { color: #b56b00; }
-
-    .card-vencido { border-top-color: #c0392b; }
-    .card-vencido .numero { color: #c0392b; }
-
-    .lista-alertas {
-      padding: 10px 30px 30px 30px;
-    }
-
-    .lista-alertas h4 {
-      color: #333;
-      margin-bottom: 10px;
-    }
+    .card-alerta.total { border-top-color: var(--brand); }
+    .card-alerta.total .numero { color: var(--brand); }
+    .card-alerta.baixo { border-top-color: var(--warning-text); }
+    .card-alerta.baixo .numero { color: var(--warning-text); }
+    .card-alerta.vencendo { border-top-color: #c07a00; }
+    .card-alerta.vencendo .numero { color: #c07a00; }
+    .card-alerta.vencido { border-top-color: var(--danger-text); }
+    .card-alerta.vencido .numero { color: var(--danger-text); }
 
     .item-alerta {
       display: flex;
       justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
       padding: 10px 14px;
-      border-radius: 10px;
+      border-radius: var(--radius-sm);
       margin-bottom: 8px;
       font-size: 14px;
     }
-
-    .item-alerta.vencido {
-      background-color: #f8d7da;
-      color: #721c24;
-    }
-
-    .item-alerta.aviso {
-      background-color: #ffe5b4;
-      color: #8a5300;
-    }
-
-    .item-alerta.estoque_baixo {
-      background-color: #fff3cd;
-      color: #856404;
-    }
+    .item-alerta.vencido { background: var(--danger-bg); color: var(--danger-text); }
+    .item-alerta.aviso { background: var(--warning-bg); color: var(--warning-text); }
+    .item-alerta.estoque_baixo { background: var(--warning-bg); color: var(--warning-text); }
 
     .sem-alertas {
       text-align: center;
-      color: #2f7d2f;
-      padding: 10px;
+      color: var(--brand);
+      padding: 14px;
     }
 
-    .logout-btn {
-      margin-top: 15px;
-      background-color: #f0310f;
+    .quick-links {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin: 24px 0 4px 0;
     }
 
-    .logout-btn:hover {
-      background-color: #a93226;
+    .quick-links a {
+      display: block;
+      text-align: center;
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      background: var(--surface-muted);
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
     }
-
-    form {
-      margin-top: 15px;
-    }
+    .quick-links a:hover { background: var(--brand-light); color: var(--brand-dark); }
   </style>
 </head>
 <body>
+  <a href="#conteudo" class="skip-link">{{ t.comum.pular_conteudo }}</a>
+  {% include 'partials/header.html' with pagina_atual='dashboard' %}
 
-  <div class="container com-alertas">
-    <div class="topo">
-    <!-- Lado esquerdo -->
-    <div class="left">
-      <img src="https://cdn-icons-png.flaticon.com/512/3209/3209170.png" alt="FarmaControl Icon">
-      <h2>FarmaControl</h2>
-      <p>Sistema de controle de estoque da saúde</p>
-      <form method="post" action="{% url 'logout' %}">
-        {% csrf_token %}
-        <button type="submit" class="btn logout-btn">Sair</button>
-      </form>
-    </div>
+  <main class="page-shell" id="conteudo">
+    <div class="card">
+      <h1 class="card-title">
+        {{ t.dashboard.bem_vindo }}, {{ request.user.username }}
+        <span style="font-size: 14px; font-weight: normal; color: var(--text-muted);">
+          ({% if request.user.cargo == 'G' %}{{ t.dashboard.gestor }}{% else %}{{ t.dashboard.atendente }}{% endif %})
+        </span>
+      </h1>
 
-    <!-- Lado direito -->
-    <div class="right">
-      <h3>Bem-vindo!</h3>
-      <div class="buttons">
-        <a href="{% url 'lista_produtos' %}" class="btn">📦 Estoque</a>
-        <a href="{% url 'adicionar_produto' %}" class="btn">➕ Adicionar Produto</a>
-        <a href="{% url 'adicionar_medicamento' %}" class="btn">💊 Adicionar Medicamento</a>
-        <a href="{% url 'lista_categorias' %}" class="btn">🏷️ Categorias</a>
-        <a href="{% url 'historico_entregas' %}" class="btn">🚚 Histórico de Entregas</a>
-        <a href="{% url 'historico_movimentacoes' %}" class="btn">🔁 Movimentações</a>
-        <a href="#" class="btn btn-alt">🧾 Relatórios (em breve)</a>
-      </div>
-    </div>
-    </div>
-
-    <!-- Cartões de alerta -->
-    <div class="cards-alerta">
-      <div class="card-alerta card-total">
-        <span class="numero">{{ total_produtos }}</span>
-        <span class="rotulo">Produtos cadastrados</span>
-      </div>
-      <a href="{% url 'lista_produtos' %}" style="text-decoration:none;">
-        <div class="card-alerta card-baixo">
+      <div class="cards-alerta">
+        <a href="{% url 'lista_produtos' %}" class="card-alerta total">
+          <span class="numero">{{ total_produtos }}</span>
+          <span class="rotulo">{{ t.dashboard.produtos_cadastrados }}</span>
+        </a>
+        <a href="{% url 'lista_produtos' %}?filtro=estoque_baixo" class="card-alerta baixo">
           <span class="numero">{{ total_estoque_baixo }}</span>
-          <span class="rotulo">Estoque baixo</span>
-        </div>
-      </a>
-      <a href="{% url 'lista_produtos' %}" style="text-decoration:none;">
-        <div class="card-alerta card-vencendo">
+          <span class="rotulo">{{ t.dashboard.estoque_baixo }}</span>
+        </a>
+        <a href="{% url 'lista_produtos' %}?filtro=vencendo" class="card-alerta vencendo">
           <span class="numero">{{ total_vencendo }}</span>
-          <span class="rotulo">Vencendo em breve</span>
-        </div>
-      </a>
-      <a href="{% url 'lista_produtos' %}" style="text-decoration:none;">
-        <div class="card-alerta card-vencido">
+          <span class="rotulo">{{ t.dashboard.vencendo_em_breve }}</span>
+        </a>
+        <a href="{% url 'lista_produtos' %}?filtro=vencidos" class="card-alerta vencido">
           <span class="numero">{{ total_vencidos }}</span>
-          <span class="rotulo">Vencidos</span>
-        </div>
-      </a>
-    </div>
+          <span class="rotulo">{{ t.dashboard.vencidos }}</span>
+        </a>
+      </div>
 
-    <!-- Lista de alertas recentes -->
-    <div class="lista-alertas">
-      <h4>🔔 Alertas recentes</h4>
+      <h2 style="font-size: 16px; color: var(--text);">🔔 {{ t.dashboard.alertas_recentes }}</h2>
       {% if alertas %}
         {% for alerta in alertas %}
           <div class="item-alerta {{ alerta.tipo }}">
@@ -275,10 +121,16 @@
           </div>
         {% endfor %}
       {% else %}
-        <div class="sem-alertas">✅ Nenhum alerta no momento. Tudo em dia!</div>
+        <div class="sem-alertas">✅ {{ t.dashboard.tudo_em_dia }}</div>
       {% endif %}
-    </div>
-  </div>
 
+      <div class="quick-links">
+        <a href="{% url 'adicionar_produto' %}">➕ {{ t.dashboard.adicionar_produto }}</a>
+        <a href="{% url 'adicionar_medicamento' %}">💊 {{ t.dashboard.adicionar_medicamento }}</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="{% static 'estoque/js/theme.js' %}"></script>
 </body>
 </html>

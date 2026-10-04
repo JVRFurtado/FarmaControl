@@ -1,0 +1,414 @@
+/* ==========================================================================
+   FarmaControl — Sistema de Design
+   Tokens de cor (claro/escuro), componentes reutilizáveis (navbar, botões,
+   cartões, tabelas, badges, formulários) e utilitários de acessibilidade e
+   responsividade. Compartilhado por todas as páginas do sistema.
+   ========================================================================== */
+
+/* ---------- Tokens de cor: tema claro (padrão) ---------- */
+:root {
+  --brand: #0f7a52;
+  --brand-dark: #0b5c3d;
+  --brand-light: #e6f4ee;
+  --accent: #2563eb;
+
+  --bg: #f3f5f7;
+  --bg-gradient: linear-gradient(135deg, #eaf6f2 0%, #f5eef2 100%);
+  --surface: #ffffff;
+  --surface-muted: #f7f8f9;
+  --border: #e2e5e9;
+
+  --text: #1f2937;
+  --text-muted: #616b77;
+  --text-on-brand: #ffffff;
+
+  --success-bg: #d4edda; --success-text: #155724;
+  --warning-bg: #fff3cd; --warning-text: #856404;
+  --danger-bg:  #f8d7da; --danger-text:  #721c24;
+  --info-bg:    #cfe2ff; --info-text:    #084298;
+
+  --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+  --radius: 14px;
+  --radius-sm: 8px;
+
+  --focus-ring: #2563eb;
+}
+
+/* ---------- Tema escuro: automático (segue o sistema operacional) ---------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --brand: #2fbf85;
+    --brand-dark: #22a473;
+    --brand-light: #113328;
+    --accent: #60a5fa;
+
+    --bg: #0f172a;
+    --bg-gradient: linear-gradient(135deg, #0f172a 0%, #17202f 100%);
+    --surface: #1a2436;
+    --surface-muted: #212d42;
+    --border: #2c394f;
+
+    --text: #e5e7eb;
+    --text-muted: #9aa5b1;
+    --text-on-brand: #06251a;
+
+    --success-bg: #123a26; --success-text: #7ee2ab;
+    --warning-bg: #3a2f0f; --warning-text: #f0cf6b;
+    --danger-bg:  #3a1518; --danger-text:  #f3a4ac;
+    --info-bg:    #142a4a; --info-text:    #9dc2ff;
+
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+  }
+}
+
+/* ---------- Tema escuro: escolha manual (sobrepõe o automático) ---------- */
+:root[data-theme="dark"] {
+  --brand: #2fbf85;
+  --brand-dark: #22a473;
+  --brand-light: #113328;
+  --accent: #60a5fa;
+
+  --bg: #0f172a;
+  --bg-gradient: linear-gradient(135deg, #0f172a 0%, #17202f 100%);
+  --surface: #1a2436;
+  --surface-muted: #212d42;
+  --border: #2c394f;
+
+  --text: #e5e7eb;
+  --text-muted: #9aa5b1;
+  --text-on-brand: #06251a;
+
+  --success-bg: #123a26; --success-text: #7ee2ab;
+  --warning-bg: #3a2f0f; --warning-text: #f0cf6b;
+  --danger-bg:  #3a1518; --danger-text:  #f3a4ac;
+  --info-bg:    #142a4a; --info-text:    #9dc2ff;
+
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* Escolha manual "claro" força os tokens claros mesmo com o SO em modo escuro */
+:root[data-theme="light"] {
+  --brand: #0f7a52;
+  --brand-dark: #0b5c3d;
+  --brand-light: #e6f4ee;
+  --accent: #2563eb;
+  --bg: #f3f5f7;
+  --bg-gradient: linear-gradient(135deg, #eaf6f2 0%, #f5eef2 100%);
+  --surface: #ffffff;
+  --surface-muted: #f7f8f9;
+  --border: #e2e5e9;
+  --text: #1f2937;
+  --text-muted: #616b77;
+  --text-on-brand: #ffffff;
+  --success-bg: #d4edda; --success-text: #155724;
+  --warning-bg: #fff3cd; --warning-text: #856404;
+  --danger-bg:  #f8d7da; --danger-text:  #721c24;
+  --info-bg:    #cfe2ff; --info-text:    #084298;
+  --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+/* ---------- Reset básico e tipografia ---------- */
+* { box-sizing: border-box; }
+
+html {
+  scroll-padding-top: env(safe-area-inset-top, 0px);
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', system-ui, -apple-system, Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--bg-gradient);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+a { color: var(--brand); }
+
+/* ---------- Acessibilidade: skip-link, sr-only, foco visível ---------- */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--brand);
+  color: var(--text-on-brand);
+  padding: 10px 16px;
+  z-index: 2000;
+  border-radius: 0 0 8px 0;
+  text-decoration: none;
+}
+.skip-link:focus { left: 0; }
+
+a:focus-visible, button:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible, label:focus-within {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* ---------- Layout de página padrão ---------- */
+.page-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px 60px 20px;
+}
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 28px;
+}
+
+.card-title {
+  color: var(--brand);
+  margin: 0 0 20px 0;
+  font-size: 22px;
+}
+
+/* ---------- Barra de navegação (topo) ---------- */
+.app-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-sm);
+}
+
+.app-header__bar {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+}
+
+.app-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--brand);
+  text-decoration: none;
+}
+.app-header__brand img { width: 28px; height: 28px; }
+
+.app-header__nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.app-header__nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.app-header__nav a:hover,
+.app-header__nav a[aria-current="page"] {
+  background: var(--brand-light);
+  color: var(--brand-dark);
+}
+
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 15px;
+}
+.icon-btn:hover { background: var(--surface-muted); }
+
+.lang-select {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+/* Menu hamburguer (mobile) — 100% CSS, sem JavaScript */
+.nav-toggle-checkbox { display: none; }
+.nav-toggle-label {
+  display: none;
+  cursor: pointer;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+}
+
+@media (max-width: 900px) {
+  .app-header__nav {
+    display: none;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-direction: column;
+    align-items: stretch;
+    padding: 8px;
+    box-shadow: var(--shadow);
+  }
+  .app-header__nav a { padding: 12px; }
+  .nav-toggle-checkbox:checked ~ .app-header__nav { display: flex; }
+  .nav-toggle-label { display: inline-flex; }
+}
+
+/* ---------- Botões ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.05s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn:disabled, button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary { background: var(--brand); color: var(--text-on-brand); }
+.btn-primary:hover { background: var(--brand-dark); }
+
+.btn-outline { background: transparent; color: var(--brand); border-color: var(--brand); }
+.btn-outline:hover { background: var(--brand-light); }
+
+.btn-secondary { background: var(--surface-muted); color: var(--text); border-color: var(--border); }
+.btn-secondary:hover { background: var(--border); }
+
+.btn-danger { background: var(--danger-text); color: #fff; }
+
+.btn-block { width: 100%; justify-content: center; }
+
+/* ---------- Formulários ---------- */
+.field { margin-bottom: 16px; text-align: left; }
+.field label {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.campo-obrigatorio {
+  color: var(--danger-text);
+  margin-left: 2px;
+}
+.legenda-obrigatorio {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: -8px 0 16px 0;
+}
+.field input[type="text"],
+.field input[type="password"],
+.field input[type="email"],
+.field input[type="number"],
+.field input[type="date"],
+.field select,
+.field textarea,
+.input-form {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+}
+
+/* ---------- Badges ---------- */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.badge-success { background: var(--success-bg); color: var(--success-text); }
+.badge-warning { background: var(--warning-bg); color: var(--warning-text); }
+.badge-danger  { background: var(--danger-bg);  color: var(--danger-text); }
+.badge-info    { background: var(--info-bg);    color: var(--info-text); }
+
+/* ---------- Mensagens do sistema ---------- */
+.alert {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+.alert-success { background: var(--success-bg); color: var(--success-text); }
+.alert-error   { background: var(--danger-bg);  color: var(--danger-text); }
+.alert-info    { background: var(--info-bg);    color: var(--info-text); }
+
+/* ---------- Tabelas ---------- */
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.data-table th, .data-table td {
+  padding: 12px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.data-table th { color: var(--brand); border-bottom: 2px solid var(--brand); }
+.data-table tr:hover td { background: var(--surface-muted); }
+
+.table-scroll { overflow-x: auto; }
+
+/* ---------- Utilitários responsivos ---------- */
+@media (max-width: 640px) {
+  .page-shell { padding: 16px 12px 40px 12px; }
+  .card { padding: 18px; border-radius: var(--radius-sm); }
+  .data-table th, .data-table td { padding: 8px; font-size: 13px; text-align: center; }
+}

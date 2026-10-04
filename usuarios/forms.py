@@ -6,7 +6,16 @@ class UserChargeForm(UserChangeForm):
     class Meta(UserChangeForm.Meta):
         model = Users
         fields = ('username', 'email', 'cargo')
-    
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'password' in self.fields:
+            del self.fields['password']
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'input-form'})
+            if field.required:
+                field.widget.attrs['required'] = 'required'
+
     def clean_email(self):
         email = self.cleaned_data.get('email')
         # Aqui, garantir que o email não se repita (exceto o próprio usuário)
@@ -20,6 +29,13 @@ class UserCreationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = Users        
         fields = ('username', 'email', 'cargo', 'password1', 'password2')  
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'input-form'})
+            if field.required:
+                field.widget.attrs['required'] = 'required'
 
     def clean_email(self):
         email = self.cleaned_data.get('email')

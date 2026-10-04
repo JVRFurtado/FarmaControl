@@ -1,0 +1,127 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="{{ idioma_atual }}">
+<head>
+  {% include 'partials/tema_init.html' %}
+  {% include 'partials/favicon.html' %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{{ t.usuarios_gestao.titulo }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'estoque/css/estilo.css' %}">
+  <style>
+    .usr-wrap { max-width: 800px; margin: 0 auto; }
+    .actions { text-align: center; margin-bottom: 22px; }
+    .acoes-lista {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 16px;
+      align-items: center;
+      justify-content: center;
+    }
+    .acoes-lista a, .acoes-lista button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      color: var(--brand);
+      font-weight: bold;
+      text-decoration: none;
+      background: none;
+      border: none;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 0;
+      font-family: inherit;
+    }
+    .acoes-lista form { display: inline-flex; margin: 0; }
+    @media (max-width: 640px) {
+      .acoes-lista { flex-direction: column; align-items: stretch; gap: 10px; }
+      .acoes-lista a, .acoes-lista button { justify-content: center; padding: 6px 0; }
+      .acoes-lista form { display: flex; }
+      .acoes-lista form button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <a href="#conteudo" class="skip-link">{{ t.comum.pular_conteudo }}</a>
+  {% include 'partials/header.html' with pagina_atual='usuarios' %}
+
+  <main class="page-shell" id="conteudo">
+    <div class="card usr-wrap">
+      <h1 class="card-title"><i class="fa fa-users" aria-hidden="true"></i> {{ t.usuarios_gestao.titulo }}</h1>
+
+      {% if messages %}
+        <div role="status" aria-live="polite">
+          {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="actions">
+        <a href="{% url 'adicionar_usuario' %}" class="btn btn-primary"><i class="fa fa-user-plus" aria-hidden="true"></i> {{ t.usuarios_gestao.novo }}</a>
+      </div>
+
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th scope="col">{{ t.usuarios_gestao.col_usuario }}</th>
+              <th scope="col">{{ t.usuarios_gestao.col_email }}</th>
+              <th scope="col">{{ t.usuarios_gestao.col_cargo }}</th>
+              <th scope="col">{{ t.usuarios_gestao.col_status }}</th>
+              <th scope="col">{{ t.usuarios_gestao.col_acoes }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for usuario in usuarios %}
+              <tr>
+                <td>{{ usuario.username }}{% if usuario.id == usuario_atual_id %} <strong>{{ t.usuarios_gestao.voce }}</strong>{% endif %}</td>
+                <td>{{ usuario.email|default:"—" }}</td>
+                <td>
+                  {% if usuario.cargo == 'G' %}
+                    <span class="badge badge-success">{{ t.usuarios_gestao.cargo_gestor }}</span>
+                  {% else %}
+                    <span class="badge badge-info">{{ t.usuarios_gestao.cargo_atendente }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if usuario.is_active %}
+                    <span class="badge badge-success">{{ t.usuarios_gestao.status_ativo }}</span>
+                  {% else %}
+                    <span class="badge badge-danger">{{ t.usuarios_gestao.status_inativo }}</span>
+                  {% endif %}
+                </td>
+                <td class="acoes">
+                  <div class="acoes-lista">
+                    <a href="{% url 'editar_usuario' usuario.id %}"><i class="fa fa-edit" aria-hidden="true"></i> {{ t.usuarios_gestao.editar }}</a>
+                    {% if usuario.id != usuario_atual_id %}
+                      <form action="{% url 'alternar_status_usuario' usuario.id %}" method="post" onsubmit="return confirm('{% if usuario.is_active %}{{ t.usuarios_gestao.desativar }}{% else %}{{ t.usuarios_gestao.ativar }}{% endif %} {{ usuario.username }}?')">
+                        {% csrf_token %}
+                        <button type="submit">
+                          {% if usuario.is_active %}
+                            <i class="fa fa-user-slash" aria-hidden="true"></i> {{ t.usuarios_gestao.desativar }}
+                          {% else %}
+                            <i class="fa fa-user-check" aria-hidden="true"></i> {{ t.usuarios_gestao.ativar }}
+                          {% endif %}
+                        </button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5" style="text-align: center; font-style: italic; color: var(--text-muted);">{{ t.usuarios_gestao.nenhum }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="{% static 'estoque/js/theme.js' %}"></script>
+</body>
+</html>

@@ -67,6 +67,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.static',
+                'farmacontrol.context_processors.idioma_e_tema',
             ],
         },
     },
@@ -119,8 +120,15 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'  # Diretório para collectstatic no Heroku
 STATICFILES_DIRS = [BASE_DIR / 'estoque' / 'static']
 
-# Config WhiteNoise para otimizar arquivos estáticos no Heroku
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Config WhiteNoise para otimizar arquivos estáticos no Heroku/Render.
+# Em desenvolvimento (DEBUG=True) usamos o storage simples do Django: o
+# ManifestStaticFilesStorage exige rodar `collectstatic` antes até para o
+# `runserver` local funcionar (ele lê um manifesto gerado por esse comando),
+# o que travaria quem só quer testar localmente sem esse passo extra.
+if DEBUG:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+else:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Configurações de login
 LOGIN_URL = '/usuarios/login/'

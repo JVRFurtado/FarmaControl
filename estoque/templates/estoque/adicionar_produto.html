@@ -1,123 +1,18 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="{{ idioma_atual }}">
 <head>
+  {% include 'partials/tema_init.html' %}
+  {% include 'partials/favicon.html' %}
   <meta charset="UTF-8">
-  <title>Adicionar Produto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{% if editar %}{{ t.form_produto.titulo_editar }}{% else %}{{ t.form_produto.titulo_novo }}{% endif %}</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'estoque/css/estilo.css' %}">
   <style>
-
-     body {
-    margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #a8edea, #fed6e3);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    }
-
-    .form-container {
-      background-color: white;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      width: 420px;
-      text-align: center;
-    }
-
-    h1 {
-      color: #228B22;
-      margin-bottom: 30px;
-      font-size: 26px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 5px;
-      color: #333;
-      font-weight: 600;
-      text-align: left;
-    }
-
-    .input-group {
-      display: flex;
-      align-items: center;
-      margin-bottom: 20px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      padding: 0 10px;
-      background-color: #fff;
-    }
-
-    .input-group i {
-      color: #999;
-      font-size: 16px;
-      margin-right: 10px;
-    }
-
-    .input-form {
-    flex: 1;
-    border: none;
-    outline: none;
-    padding: 10px;
-    font-size: 14px;
-    border-radius: 10px;
-    background-color: transparent;
-    height: 23px;
-    }
-
-
-    .input-group input,
-    .input-group select {
-      flex: 1;
-      border: none;
-      outline: none;
-      padding: 10px;
-      font-size: 14px;
-      border-radius: 10px;
-      background-color: transparent;
-      height: 38px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      background-color: #228B22;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: background-color 0.3s ease;
-    }
-
-    button:hover {
-      background-color: #1a731a;
-    }
-
-    .back-button {
-      margin-top: 20px;
-      display: inline-block;
-      background-color: #888;
-      text-decoration: none;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 10px;
-      font-size: 14px;
-      transition: background-color 0.3s;
-    }
-
-    .back-button:hover {
-      background-color: #666;
-    }
-
-    /* Estilo para erros do Django */
+    .form-wrap { max-width: 520px; margin: 0 auto; }
     .errorlist {
-      color: red;
+      color: var(--danger-text);
       margin: 0 0 10px 0;
       padding-left: 0;
       list-style: none;
@@ -127,117 +22,107 @@
   </style>
 </head>
 <body>
+  <a href="#conteudo" class="skip-link">{{ t.comum.pular_conteudo }}</a>
+  {% include 'partials/header.html' with pagina_atual='produtos' %}
 
-  <div class="form-container">
-    <h1>Adicionar Produto</h1>
-    {% if messages %}
-    <div style="margin-bottom: 15px; text-align: left;">
-      {% for message in messages %}
-        <div style="padding: 10px; border-radius: 8px; margin-bottom: 8px;
-                    {% if message.tags == 'success' %} background-color: #d4edda; color: #155724; 
-                    {% elif message.tags == 'error' %} background-color: #f8d7da; color: #721c24; 
-                    {% else %} background-color: #fff3cd; color: #856404; 
-                    {% endif %}">
-          {{ message }}
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
+  <main class="page-shell" id="conteudo">
+    <div class="card form-wrap">
+      <h1 class="card-title">
+        <i class="fa fa-box" aria-hidden="true"></i>
+        {% if editar %}{{ t.form_produto.titulo_editar }}{% else %}{{ t.form_produto.titulo_novo }}{% endif %}
+      </h1>
 
-    <form method="post">
-      {% csrf_token %}
-
-      {% if form.errors %}
-    <div style="color: red; text-align: left; margin-bottom: 15px;">
-      <strong>Erros no formulário:</strong>
-      <ul>
-          {% for field in form %}
-            {% for error in field.errors %}
-              <li>{{ field.label }}: {{ error }}</li>
+      {% if messages %}
+        <div role="status" aria-live="polite">
+          {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">{{ message }}</div>
           {% endfor %}
-        {% endfor %}
-        {% for error in form.non_field_errors %}
-          <li>{{ error }}</li>
-        {% endfor %}
-      </ul>
-    </div>
-  {% endif %}
+        </div>
+      {% endif %}
 
-      <label for="{{ form.nome.id_for_label }}">Nome:</label>
-      <div class="input-group">
-        <i class="fa fa-box"></i>
-        {{ form.nome }}
-      </div>
-      {{ form.nome.errors }}
+      {% if form.non_field_errors %}
+        <div class="alert alert-error" role="alert">
+          {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+      {% endif %}
 
-      <label for="{{ form.categoria.id_for_label }}">Categoria:</label>
-      <div class="input-group">
-        <i class="fa fa-tags"></i>
-        {{ form.categoria }}
-      </div>
-      {{ form.categoria.errors }}
-      <p style="text-align: left; margin: -10px 0 15px 0;">
-        <a href="{% url 'adicionar_categoria' %}?next={{ request.path }}" style="color: #228B22; font-size: 13px;">
-          <i class="fa fa-plus-circle"></i> Cadastrar nova categoria
-        </a>
+      <p class="legenda-obrigatorio">{{ t.comum.legenda_obrigatorio }}</p>
+
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="field">
+          <label for="{{ form.nome.id_for_label }}">{{ t.form_produto.campo_nome }}{% if form.nome.field.required %}<span class="campo-obrigatorio" aria-hidden="true">*</span>{% endif %}</label>
+          {{ form.nome }}
+          {{ form.nome.errors }}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.categoria.id_for_label }}">{{ t.form_produto.campo_categoria }}{% if form.categoria.field.required %}<span class="campo-obrigatorio" aria-hidden="true">*</span>{% endif %}</label>
+          {{ form.categoria }}
+          {{ form.categoria.errors }}
+          <p style="margin: 6px 0 0 0;">
+            <a href="{% url 'adicionar_categoria' %}?next={{ request.path|urlencode }}" style="font-size: 13px;">
+              <i class="fa fa-plus-circle" aria-hidden="true"></i> {{ t.form_produto.nova_categoria }}
+            </a>
+          </p>
+        </div>
+
+        <div class="field">
+          <label for="{{ form.altura.id_for_label }}">{{ t.form_produto.campo_altura }}{% if form.altura.field.required %}<span class="campo-obrigatorio" aria-hidden="true">*</span>{% endif %}</label>
+          {{ form.altura }}
+          {{ form.altura.errors }}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.largura.id_for_label }}">{{ t.form_produto.campo_largura }}{% if form.largura.field.required %}<span class="campo-obrigatorio" aria-hidden="true">*</span>{% endif %}</label>
+          {{ form.largura }}
+          {{ form.largura.errors }}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.comprimento.id_for_label }}">{{ t.form_produto.campo_comprimento }}{% if form.comprimento.field.required %}<span class="campo-obrigatorio" aria-hidden="true">*</span>{% endif %}</label>
+          {{ form.comprimento }}
+          {{ form.comprimento.errors }}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.quantidade.id_for_label }}">{{ t.form_produto.campo_quantidade }}{% if form.quantidade.field.required %}<span class="campo-obrigatorio" aria-hidden="true">*</span>{% endif %}</label>
+          {{ form.quantidade }}
+          {{ form.quantidade.errors }}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.estoque_minimo.id_for_label }}">{{ t.form_produto.campo_estoque_minimo }}{% if form.estoque_minimo.field.required %}<span class="campo-obrigatorio" aria-hidden="true">*</span>{% endif %}</label>
+          {{ form.estoque_minimo }}
+          {{ form.estoque_minimo.errors }}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.data_validade.id_for_label }}">{{ t.form_produto.campo_data_validade }}{% if form.data_validade.field.required %}<span class="campo-obrigatorio" aria-hidden="true">*</span>{% endif %}</label>
+          {{ form.data_validade }}
+          {{ form.data_validade.errors }}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.ultima_compra.id_for_label }}">{{ t.form_produto.campo_ultima_compra }}{% if form.ultima_compra.field.required %}<span class="campo-obrigatorio" aria-hidden="true">*</span>{% endif %}</label>
+          {{ form.ultima_compra }}
+          {{ form.ultima_compra.errors }}
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">
+          <i class="fa {% if editar %}fa-check{% else %}fa-plus-circle{% endif %}" aria-hidden="true"></i>
+          {% if editar %}{{ t.form_produto.btn_salvar }}{% else %}{{ t.form_produto.btn_cadastrar }}{% endif %}
+        </button>
+      </form>
+
+      <p style="text-align: center; margin-top: 18px;">
+        <a href="{% url 'lista_produtos' %}"><i class="fa fa-arrow-left" aria-hidden="true"></i> {{ t.form_produto.voltar }}</a>
       </p>
+    </div>
+  </main>
 
-      <label for="{{ form.altura.id_for_label }}">Altura (cm):</label>
-      <div class="input-group">
-        <i class="fa fa-ruler-vertical"></i>
-        {{ form.altura }}
-      </div>
-      {{ form.altura.errors }}
-
-      <label for="{{ form.largura.id_for_label }}">Largura (cm):</label>
-      <div class="input-group">
-        <i class="fa fa-ruler-horizontal"></i>
-        {{ form.largura }}
-      </div>
-      {{ form.largura.errors }}
-
-      <label for="{{ form.comprimento.id_for_label }}">Comprimento (cm):</label>
-      <div class="input-group">
-        <i class="fa fa-ruler"></i>
-        {{ form.comprimento }}
-      </div>
-      {{ form.comprimento.errors }}
-
-      <label for="{{ form.quantidade.id_for_label }}">Quantidade:</label>
-      <div class="input-group">
-        <i class="fa fa-sort-numeric-up"></i>
-        {{ form.quantidade }}
-      </div>
-      {{ form.quantidade.errors }}
-
-      <label for="{{ form.estoque_minimo.id_for_label }}">Estoque mínimo:</label>
-      <div class="input-group">
-        <i class="fa fa-exclamation-triangle"></i>
-        {{ form.estoque_minimo }}
-      </div>
-      {{ form.estoque_minimo.errors }}
-
-      <label for="{{ form.data_validade.id_for_label }}">Data validade:</label>
-      <div class="input-group">
-        <i class="fa fa-calendar-alt"></i>
-        {{ form.data_validade }}
-      </div>
-      {{ form.data_validade.errors }}
-
-      <label for="{{ form.ultima_compra.id_for_label }}">Última compra:</label>
-      <div class="input-group">
-        <i class="fa fa-shopping-cart"></i>
-        {{ form.ultima_compra }}
-      </div>
-      {{ form.ultima_compra.errors }}
-
-      <button type="submit"><i class="fa fa-plus-circle"></i> Adicionar Produto</button>
-    </form>
-
-    <a href="{% url 'dashboard' %}" class="back-button">
-      <i class="fa fa-arrow-left"></i> Voltar para o Início
-    </a>
-  </div>
-
+  <script src="{% static 'estoque/js/theme.js' %}"></script>
+  <script src="{% static 'estoque/js/form-validation.js' %}"></script>
 </body>
 </html>

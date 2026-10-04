@@ -1,0 +1,156 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="{{ idioma_atual }}">
+<head>
+  {% include 'partials/tema_init.html' %}
+  {% include 'partials/favicon.html' %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{{ t.relatorios.titulo }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'estoque/css/estilo.css' %}">
+  <style>
+    .rel-wrap { max-width: 1100px; margin: 0 auto; }
+
+    .filtros-painel {
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 22px;
+    }
+    .filtros-painel__titulo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0 0 14px 0;
+    }
+    .filtros-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .campo-filtro label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .filtros-painel select, .filtros-painel input[type="date"] {
+      width: 100%;
+      height: 42px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 14px;
+    }
+    .filtros-painel select:focus, .filtros-painel input[type="date"]:focus { border-color: var(--brand); }
+    .botoes-form { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+    .botoes-form .btn { height: 42px; }
+
+    caption { text-align: left; font-weight: bold; color: var(--brand); margin-bottom: 10px; font-size: 15px; }
+    .resumo { font-size: 13px; color: var(--text-muted); margin: 0 0 16px 0; }
+
+    @media (max-width: 860px) {
+      .filtros-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 700px) {
+      .filtros-grid { grid-template-columns: 1fr; }
+      .botoes-form .btn { flex: 1 1 auto; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <a href="#conteudo" class="skip-link">{{ t.comum.pular_conteudo }}</a>
+  {% include 'partials/header.html' with pagina_atual='relatorios' %}
+
+  <main class="page-shell" id="conteudo">
+    <div class="card rel-wrap">
+      <h1 class="card-title"><i class="fa fa-chart-column" aria-hidden="true"></i> {{ t.relatorios.titulo }}</h1>
+
+      <div class="filtros-painel">
+        <p class="filtros-painel__titulo"><i class="fa fa-sliders" aria-hidden="true"></i> {{ t.relatorios.filtros }}</p>
+        <form method="get" aria-label="{{ t.relatorios.filtros }}">
+          <div class="filtros-grid">
+            <div class="campo-filtro">
+              <label for="tipo">{{ t.relatorios.campo_relatorio }}</label>
+              <select id="tipo" name="tipo">
+                <option value="estoque" {% if tipo_selecionado == 'estoque' %}selected{% endif %}>{{ t.relatorios.tipo_estoque }}</option>
+                <option value="estoque_baixo" {% if tipo_selecionado == 'estoque_baixo' %}selected{% endif %}>{{ t.relatorios.tipo_estoque_baixo }}</option>
+                <option value="vencendo" {% if tipo_selecionado == 'vencendo' %}selected{% endif %}>{{ t.relatorios.tipo_vencendo }}</option>
+                <option value="vencidos" {% if tipo_selecionado == 'vencidos' %}selected{% endif %}>{{ t.relatorios.tipo_vencidos }}</option>
+                <option value="entregas" {% if tipo_selecionado == 'entregas' %}selected{% endif %}>{{ t.relatorios.tipo_entregas }}</option>
+                <option value="movimentacoes" {% if tipo_selecionado == 'movimentacoes' %}selected{% endif %}>{{ t.relatorios.tipo_movimentacoes }}</option>
+              </select>
+            </div>
+
+            <div class="campo-filtro">
+              <label for="categoria">{{ t.relatorios.campo_categoria }}</label>
+              <select id="categoria" name="categoria">
+                <option value="">{{ t.relatorios.todas_categorias }}</option>
+                {% for cat in categorias %}
+                  <option value="{{ cat.id }}" {% if categoria_selecionada == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.nome }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="campo-filtro">
+              <label for="data_inicio">{{ t.relatorios.campo_de }}{% if not mostrar_periodo %} <span class="sr-only">{{ t.relatorios.ajuda_periodo }}</span>{% endif %}</label>
+              <input type="date" id="data_inicio" name="data_inicio" value="{{ data_inicio }}">
+            </div>
+
+            <div class="campo-filtro">
+              <label for="data_fim">{{ t.relatorios.campo_ate }}{% if not mostrar_periodo %} <span class="sr-only">{{ t.relatorios.ajuda_periodo }}</span>{% endif %}</label>
+              <input type="date" id="data_fim" name="data_fim" value="{{ data_fim }}">
+            </div>
+          </div>
+
+          <div class="botoes-form">
+            <button type="submit" name="formato" value="html" class="btn btn-primary"><i class="fa fa-magnifying-glass" aria-hidden="true"></i> {{ t.relatorios.btn_ver }}</button>
+            <button type="submit" name="formato" value="csv" class="btn btn-secondary"><i class="fa fa-file-csv" aria-hidden="true"></i> {{ t.relatorios.btn_csv }}</button>
+            <button type="submit" name="formato" value="xlsx" class="btn btn-secondary"><i class="fa fa-file-excel" aria-hidden="true"></i> {{ t.relatorios.btn_xlsx }}</button>
+          </div>
+        </form>
+      </div>
+
+      <p class="resumo">{{ total_linhas }} {% if idioma_atual == 'en' %}record{{ total_linhas|pluralize }} found{% else %}registro{{ total_linhas|pluralize }} encontrado{{ total_linhas|pluralize }}{% endif %}.</p>
+
+      <div class="table-scroll">
+        <table class="data-table">
+          <caption>{{ tipo_rotulo }}</caption>
+          <thead>
+            <tr>
+              {% for coluna in colunas %}
+                <th scope="col">{{ coluna }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for linha in linhas %}
+              <tr>
+                {% for valor in linha %}
+                  <td>{{ valor }}</td>
+                {% endfor %}
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="{{ colunas|length }}" style="text-align: center; font-style: italic; color: var(--text-muted);">{{ t.relatorios.nenhum_registro }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="{% static 'estoque/js/theme.js' %}"></script>
+</body>
+</html>

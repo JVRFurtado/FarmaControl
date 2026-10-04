@@ -1,295 +1,276 @@
-{% load static %}
+{% load static i18n_extras %}
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="{{ idioma_atual }}">
 <head>
+  {% include 'partials/tema_init.html' %}
+  {% include 'partials/favicon.html' %}
   <meta charset="UTF-8">
-  <title>Lista de Produtos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{{ t.produtos.titulo }}</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'estoque/css/estilo.css' %}">
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #a8edea, #fed6e3);
-      margin: 0;
-      padding: 40px;
-      display: flex;
-      justify-content: center;
-      min-height: 100vh;
+    .filtros-painel {
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 22px;
     }
-
-    .container {
-      width: 100%;
-      max-width: 1100px;
-      background-color: #fff;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-    }
-
-    h1 {
-      text-align: center;
-      color: #228B22;
-      margin-bottom: 30px;
-      font-size: 30px;
+    .filtros-painel__titulo {
       display: flex;
-      justify-content: center;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin: 0 0 14px 0;
     }
-
-    form {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 30px;
+    .filtros-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr auto;
+      gap: 14px;
+      align-items: end;
     }
-
-    input[type="text"] {
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      width: 300px;
-      font-size: 15px;
+    .campo-filtro label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
     }
-
-    button {
-      padding: 12px 24px;
-      background-color: #228B22;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 15px;
-      transition: background-color 0.2s;
+    .campo-filtro .input-icone { position: relative; }
+    .campo-filtro .input-icone i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 13px;
+      pointer-events: none;
     }
+    .busca-form select, .busca-form input[type="text"] {
+      width: 100%;
+      height: 42px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 14px;
+    }
+    /* Especificidade maior que a regra genérica acima, de propósito: garante
+       que o padding-esquerdo do campo com ícone não seja sobrescrito (era a
+       causa da lupa sobrepor o texto digitado). */
+    .busca-form .campo-filtro .input-icone input[type="text"] {
+      padding-left: 36px;
+    }
+    .busca-form select:focus, .busca-form input[type="text"]:focus {
+      border-color: var(--brand);
+    }
+    .filtros-grid .btn-filtrar { height: 42px; white-space: nowrap; }
 
-    button:hover {
-      background-color: #1a731a;
+    @media (max-width: 700px) {
+      .filtros-grid { grid-template-columns: 1fr; }
+      .filtros-grid .btn-filtrar { justify-content: center; }
     }
 
     .actions {
-      text-align: center;
-      margin-bottom: 25px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 700px) {
+      .actions { flex-wrap: nowrap; }
+      .actions .btn { flex: 1 1 0; justify-content: center; padding-left: 10px; padding-right: 10px; }
     }
 
-    .actions a {
-      display: inline-block;
-      padding: 12px 24px;
-      border-radius: 10px;
-      text-decoration: none;
-      font-weight: bold;
-      margin: 0 10px;
-      font-size: 14px;
-      transition: transform 0.2s;
-    }
+    .badge-linha { margin-left: 6px; }
 
-    .actions a:hover {
-      transform: scale(1.05);
-    }
+    tr.linha-vencido td { background: var(--danger-bg); }
+    tr.linha-aviso td { background: var(--warning-bg); }
 
-    .botao-verde {
-      background-color: #228B22;
-      color: white;
+    /* A célula de ações (classe "acoes") continua sendo uma célula de tabela
+       normal (sem display:flex nela) para não repetir o problema de
+       desalinhamento de antes. Quem vira flex/lista é o elemento div de dentro. */
+    .acoes-lista {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 16px;
+      align-items: center;
+      justify-content: center;
     }
-
-    .botao-cinza {
-      background-color: #888;
-      color: white;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-
-    th, td {
-      padding: 14px;
-      text-align: left;
-      border-bottom: 1px solid #e0e0e0;
-    }
-
-    th {
-      background-color: #228B22;
-      color: white;
-    }
-
-    tr:hover {
-      background-color: #f9f9f9;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: bold;
-      margin: 2px 4px 2px 0;
+    .acoes-lista a, .acoes-lista .link-como-botao {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       white-space: nowrap;
-    }
-
-    .badge-baixo {
-      background-color: #fff3cd;
-      color: #856404;
-    }
-
-    .badge-vencido {
-      background-color: #f8d7da;
-      color: #721c24;
-    }
-
-    .badge-aviso {
-      background-color: #ffe5b4;
-      color: #8a5300;
-    }
-
-    .badge-ok {
-      background-color: #d4edda;
-      color: #155724;
-    }
-
-    tr.linha-vencido {
-      background-color: #fdf1f1;
-    }
-
-    tr.linha-aviso {
-      background-color: #fffaf0;
-    }
-
-    .acoes a {
-      color: #228B22;
-      margin-right: 12px;
-      font-weight: bold;
+      color: var(--brand);
+      font-weight: 600;
       text-decoration: none;
-    }
-
-    .acoes a:hover {
-      text-decoration: underline;
-    }
-
-    .acoes form.acao-excluir {
-      display: inline;
-    }
-
-    .acoes .link-como-botao {
       background: none;
       border: none;
       padding: 0;
-      color: #228B22;
-      margin-right: 12px;
-      font-weight: bold;
-      font-size: 1em;
+      font-size: 14px;
       font-family: inherit;
       cursor: pointer;
-      text-decoration: none;
     }
+    .acoes-lista a:hover, .acoes-lista .link-como-botao:hover { text-decoration: underline; }
+    .acoes-lista form { display: inline-flex; margin: 0; }
 
-    .acoes .link-como-botao:hover {
-      text-decoration: underline;
-    }
-
-    .voltar {
-      margin-top: 30px;
-      text-align: center;
-    }
-
-    .voltar a {
-      background-color: #888;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 10px;
-      text-decoration: none;
-      font-size: 15px;
-    }
-
-    .voltar a:hover {
-      background-color: #666;
+    @media (max-width: 640px) {
+      .acoes-lista {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+      .acoes-lista a, .acoes-lista .link-como-botao {
+        justify-content: center;
+        padding: 6px 0;
+      }
+      .acoes-lista form { display: flex; }
+      .acoes-lista form .link-como-botao { width: 100%; }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1><i class="fa fa-boxes"></i> Lista de Produtos em Estoque</h1>
+  <a href="#conteudo" class="skip-link">{{ t.comum.pular_conteudo }}</a>
+  {% include 'partials/header.html' with pagina_atual='produtos' %}
 
-    <form method="get" action="">
-      <input type="text" name="buscar" placeholder="Buscar produto..." />
-      <button type="submit"><i class="fa fa-search"></i> Buscar</button>
-    </form>
+  <main class="page-shell" id="conteudo">
+    <div class="card">
+      <h1 class="card-title"><i class="fa fa-boxes" aria-hidden="true"></i> {{ t.produtos.titulo }}</h1>
 
-    <div class="actions">
-      <a href="{% url 'adicionar_produto' %}" class="botao-verde">
-        <i class="fa fa-plus-circle"></i> Adicionar Produto
-      </a>
-      <a href="{% url 'adicionar_medicamento' %}" class="botao-cinza">
-        <i class="fa fa-pills"></i> Adicionar Medicamento
-      </a>
-      <a href="{% url 'lista_categorias' %}" class="botao-cinza">
-        <i class="fa fa-tags"></i> Categorias
-      </a>
-      <a href="{% url 'historico_entregas' %}" class="botao-cinza">
-        <i class="fa fa-truck"></i> Histórico de Entregas
-      </a>
-      <a href="{% url 'historico_movimentacoes' %}" class="botao-cinza">
-        <i class="fa fa-right-left"></i> Movimentações
-      </a>
+      {% if messages %}
+        <div role="status" aria-live="polite">
+          {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="filtros-painel">
+        <p class="filtros-painel__titulo"><i class="fa fa-sliders" aria-hidden="true"></i> {{ t.produtos.filtro_status_label }} &amp; {{ t.produtos.buscar_botao }}</p>
+        <form method="get" action="" role="search" class="busca-form">
+          <div class="filtros-grid">
+            <div class="campo-filtro">
+              <label for="buscar">{{ t.produtos.buscar_label }}</label>
+              <div class="input-icone">
+                <i class="fa fa-search" aria-hidden="true"></i>
+                <input type="text" id="buscar" name="buscar" placeholder="{{ t.produtos.buscar_placeholder }}" value="{{ request.GET.buscar|default:'' }}">
+              </div>
+            </div>
+            <div class="campo-filtro">
+              <label for="categoria">{{ t.produtos.filtro_categoria_label }}</label>
+              <select id="categoria" name="categoria">
+                <option value="">{{ t.produtos.filtro_todas_categorias }}</option>
+                {% for cat in categorias %}
+                  <option value="{{ cat.id }}" {% if categoria_selecionada == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.nome }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="campo-filtro">
+              <label for="filtro">{{ t.produtos.filtro_status_label }}</label>
+              <select id="filtro" name="filtro">
+                <option value="">{{ t.produtos.filtro_todos_status }}</option>
+                <option value="normal" {% if filtro_ativo == 'normal' %}selected{% endif %}>{{ t.produtos.status_normal }}</option>
+                <option value="estoque_baixo" {% if filtro_ativo == 'estoque_baixo' %}selected{% endif %}>{{ t.produtos.filtro_estoque_baixo }}</option>
+                <option value="vencendo" {% if filtro_ativo == 'vencendo' %}selected{% endif %}>{{ t.produtos.filtro_vencendo }}</option>
+                <option value="vencidos" {% if filtro_ativo == 'vencidos' %}selected{% endif %}>{{ t.produtos.filtro_vencidos }}</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-filtrar"><i class="fa fa-filter" aria-hidden="true"></i> {{ t.produtos.filtro_aplicar }}</button>
+          </div>
+        </form>
+      </div>
+
+      {% if filtro_ativo or categoria_selecionada %}
+        <div class="alert alert-info" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <span>
+            <i class="fa fa-filter" aria-hidden="true"></i>
+            {{ t.produtos.mostrando_filtro }}:
+            <strong>
+              {% if filtro_ativo == 'normal' %}{{ t.produtos.status_normal }}{% endif %}
+              {% if filtro_ativo == 'estoque_baixo' %}{{ t.produtos.filtro_estoque_baixo }}{% endif %}
+              {% if filtro_ativo == 'vencendo' %}{{ t.produtos.filtro_vencendo }}{% endif %}
+              {% if filtro_ativo == 'vencidos' %}{{ t.produtos.filtro_vencidos }}{% endif %}
+              {% for cat in categorias %}{% if categoria_selecionada == cat.id|stringformat:"s" %}{% if filtro_ativo %} · {% endif %}{{ cat.nome }}{% endif %}{% endfor %}
+            </strong>
+          </span>
+          <a href="{% url 'lista_produtos' %}">{{ t.produtos.limpar_filtro }}</a>
+        </div>
+      {% endif %}
+
+      <div class="actions">
+        <a href="{% url 'adicionar_produto' %}" class="btn btn-primary">
+          <i class="fa fa-plus-circle" aria-hidden="true"></i> {{ t.produtos.adicionar_produto }}
+        </a>
+        <a href="{% url 'adicionar_medicamento' %}" class="btn btn-secondary">
+          <i class="fa fa-pills" aria-hidden="true"></i> {{ t.produtos.adicionar_medicamento }}
+        </a>
+      </div>
+
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th scope="col"><i class="fa fa-box" aria-hidden="true"></i> {{ t.produtos.col_nome }}</th>
+              <th scope="col"><i class="fa fa-tags" aria-hidden="true"></i> {{ t.produtos.col_categoria }}</th>
+              <th scope="col"><i class="fa fa-sort-numeric-up" aria-hidden="true"></i> {{ t.produtos.col_quantidade }}</th>
+              <th scope="col"><i class="fa fa-calendar-alt" aria-hidden="true"></i> {{ t.produtos.col_validade }}</th>
+              <th scope="col"><i class="fa fa-triangle-exclamation" aria-hidden="true"></i> {{ t.produtos.col_status }}</th>
+              <th scope="col"><i class="fa fa-cogs" aria-hidden="true"></i> {{ t.produtos.col_acoes }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for produto in produtos %}
+              <tr class="{% if produto.esta_vencido %}linha-vencido{% elif produto.vencimento_proximo %}linha-aviso{% endif %}">
+                <td>{{ produto.nome }}</td>
+                <td>{{ produto.categoria.nome }}</td>
+                <td>
+                  {{ produto.quantidade }}
+                  {% if produto.estoque_baixo %}
+                    <span class="badge badge-warning badge-linha"><i class="fa fa-arrow-down" aria-hidden="true"></i> {{ t.produtos.estoque_baixo_badge }}</span>
+                  {% endif %}
+                </td>
+                <td>{{ produto.data_validade|data_localizada:idioma_atual }}</td>
+                <td>
+                  {% if produto.esta_vencido %}
+                    <span class="badge badge-danger"><i class="fa fa-skull-crossbones" aria-hidden="true"></i> {{ t.produtos.status_vencido }}</span>
+                  {% elif produto.vencimento_proximo %}
+                    <span class="badge badge-warning"><i class="fa fa-clock" aria-hidden="true"></i> {{ t.produtos.status_aviso }} ({{ produto.dias_para_vencer }})</span>
+                  {% elif produto.data_validade %}
+                    <span class="badge badge-success"><i class="fa fa-check" aria-hidden="true"></i> {{ t.produtos.status_normal }}</span>
+                  {% endif %}
+                </td>
+                <td class="acoes">
+                  <div class="acoes-lista">
+                    {% if request.user.cargo == 'G' %}
+                    <a href="{% url 'editar_produto' produto.id %}"><i class="fa fa-edit" aria-hidden="true"></i> {{ t.produtos.editar }}</a>
+                    <form action="{% url 'excluir_produto' produto.id %}" method="post" onsubmit="return confirm('{{ t.produtos.excluir }}?')">
+                      {% csrf_token %}
+                      <button type="submit" class="link-como-botao"><i class="fa fa-trash-alt" aria-hidden="true"></i> {{ t.produtos.excluir }}</button>
+                    </form>
+                    {% endif %}
+                    <a href="{% url 'entregar_produto' produto.id %}"><i class="fa fa-truck" aria-hidden="true"></i> {{ t.produtos.entregar }}</a>
+                    <a href="{% url 'historico_movimentacoes' %}?produto={{ produto.id }}"><i class="fa fa-clock-rotate-left" aria-hidden="true"></i> {{ t.produtos.historico }}</a>
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" style="text-align: center; font-style: italic; color: var(--text-muted);">{{ t.produtos.nenhum_produto }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
+  </main>
 
-    <table>
-      <thead>
-        <tr>
-          <th><i class="fa fa-box"></i> Nome</th>
-          <th><i class="fa fa-tags"></i> Categoria</th>
-          <th><i class="fa fa-sort-numeric-up"></i> Quantidade</th>
-          <th><i class="fa fa-calendar-alt"></i> Validade</th>
-          <th><i class="fa fa-triangle-exclamation"></i> Status</th>
-          <th><i class="fa fa-cogs"></i> Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for produto in produtos %}
-          <tr class="{% if produto.esta_vencido %}linha-vencido{% elif produto.vencimento_proximo %}linha-aviso{% endif %}">
-            <td>{{ produto.nome }}</td>
-            <td>{{ produto.categoria.nome }}</td>
-            <td>{{ produto.quantidade }}{% if produto.estoque_baixo %} <span class="badge badge-baixo"><i class="fa fa-arrow-down"></i> Estoque baixo</span>{% endif %}</td>
-            <td>{{ produto.data_validade|default:"—" }}</td>
-            <td>
-              {% if produto.esta_vencido %}
-                <span class="badge badge-vencido"><i class="fa fa-skull-crossbones"></i> Vencido</span>
-              {% elif produto.vencimento_proximo %}
-                <span class="badge badge-aviso"><i class="fa fa-clock"></i> Vence em {{ produto.dias_para_vencer }} dia{{ produto.dias_para_vencer|pluralize }}</span>
-              {% elif produto.data_validade %}
-                <span class="badge badge-ok"><i class="fa fa-check"></i> Normal</span>
-              {% endif %}
-            </td>
-            <td class="acoes">
-              {% if is_gestor %}
-              <a href="{% url 'editar_produto' produto.id %}"><i class="fa fa-edit"></i> Editar</a>
-              <form action="{% url 'excluir_produto' produto.id %}" method="post" class="acao-excluir" onsubmit="return confirm('Tem certeza que deseja excluir?')">
-                {% csrf_token %}
-                <button type="submit" class="link-como-botao"><i class="fa fa-trash-alt"></i> Excluir</button>
-              </form>
-              {% endif %}
-              <a href="{% url 'entregar_produto' produto.id %}">
-                <i class="fa fa-truck"></i> Entregar
-              </a>
-              <a href="{% url 'historico_movimentacoes' %}?produto={{ produto.id }}">
-                <i class="fa fa-clock-rotate-left"></i> Histórico
-              </a>
-            </td>
-          </tr>
-        {% empty %}
-          <tr>
-            <td colspan="6" style="text-align: center; font-style: italic; color: #555;">Nenhum produto encontrado.</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
-    <div class="voltar">
-      <a href="{% url 'dashboard' %}">
-        <i class="fa fa-arrow-left"></i> Voltar ao Início
-      </a>
-    </div>
-  </div>
+  <script src="{% static 'estoque/js/theme.js' %}"></script>
 </body>
 </html>

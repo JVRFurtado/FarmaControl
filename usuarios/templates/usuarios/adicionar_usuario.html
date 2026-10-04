@@ -1,0 +1,81 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="{{ idioma_atual }}">
+<head>
+  {% include 'partials/tema_init.html' %}
+  {% include 'partials/favicon.html' %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{{ t.usuarios_gestao.form_novo_titulo }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'estoque/css/estilo.css' %}">
+  <style>
+    .form-wrap { max-width: 460px; margin: 0 auto; }
+    .help-text { font-size: 12px; color: var(--text-muted); margin: 6px 0 0 0; line-height: 1.4; }
+    .errorlist {
+      color: var(--danger-text);
+      margin: 0 0 10px 0;
+      padding-left: 0;
+      list-style: none;
+      text-align: left;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <a href="#conteudo" class="skip-link">{{ t.comum.pular_conteudo }}</a>
+  {% include 'partials/header.html' with pagina_atual='usuarios' %}
+
+  <main class="page-shell" id="conteudo">
+    <div class="card form-wrap">
+      <h1 class="card-title"><i class="fa fa-user-plus" aria-hidden="true"></i> {{ t.usuarios_gestao.form_novo_titulo }}</h1>
+
+      <p class="legenda-obrigatorio">{{ t.comum.legenda_obrigatorio }}</p>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="field">
+          <label for="{{ form.username.id_for_label }}">{{ t.usuarios_gestao.campo_usuario }}{% if form.username.field.required %}<span class="campo-obrigatorio" aria-hidden="true">*</span>{% endif %}</label>
+          {{ form.username }}
+          {{ form.username.errors }}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.email.id_for_label }}">{{ t.usuarios_gestao.campo_email }}{% if form.email.field.required %}<span class="campo-obrigatorio" aria-hidden="true">*</span>{% endif %}</label>
+          {{ form.email }}
+          {{ form.email.errors }}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.cargo.id_for_label }}">{{ t.usuarios_gestao.campo_cargo }}{% if form.cargo.field.required %}<span class="campo-obrigatorio" aria-hidden="true">*</span>{% endif %}</label>
+          {{ form.cargo }}
+          {{ form.cargo.errors }}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.password1.id_for_label }}">{{ t.usuarios_gestao.campo_senha }}{% if form.password1.field.required %}<span class="campo-obrigatorio" aria-hidden="true">*</span>{% endif %}</label>
+          {{ form.password1 }}
+          {{ form.password1.errors }}
+          <p class="help-text">{{ t.usuarios_gestao.ajuda_senha }}</p>
+        </div>
+
+        <div class="field">
+          <label for="{{ form.password2.id_for_label }}">{{ t.usuarios_gestao.campo_confirmar_senha }}{% if form.password2.field.required %}<span class="campo-obrigatorio" aria-hidden="true">*</span>{% endif %}</label>
+          {{ form.password2 }}
+          {{ form.password2.errors }}
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-check" aria-hidden="true"></i> {{ t.usuarios_gestao.btn_cadastrar }}</button>
+      </form>
+
+      <p style="text-align: center; margin-top: 18px;">
+        <a href="{% url 'lista_usuarios' %}"><i class="fa fa-arrow-left" aria-hidden="true"></i> {{ t.form_produto.voltar }}</a>
+      </p>
+    </div>
+  </main>
+
+  <script src="{% static 'estoque/js/theme.js' %}"></script>
+  <script src="{% static 'estoque/js/form-validation.js' %}"></script>
+</body>
+</html>

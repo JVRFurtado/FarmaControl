@@ -134,6 +134,17 @@ class MovimentacaoEstoque(models.Model):
         (SAIDA, 'Saída'),
     ]
 
+    # Motivos "conhecidos": permitem traduzir o texto exibido conforme o
+    # idioma da pessoa. `motivo` continua guardando o texto em português
+    # (serve de histórico bruto e cobre registros antigos ou motivos livres
+    # que não se encaixam em nenhum código). `motivo_detalhe` guarda a parte
+    # variável (ex.: o nome do paciente, no caso de uma entrega).
+    MOTIVO_CADASTRO_PRODUTO = 'cadastro_produto'
+    MOTIVO_CADASTRO_MEDICAMENTO = 'cadastro_medicamento'
+    MOTIVO_AJUSTE_MANUAL = 'ajuste_manual'
+    MOTIVO_ENTREGA = 'entrega'
+    MOTIVO_EXCLUSAO_PRODUTO = 'exclusao_produto'
+
     produto = models.ForeignKey(
         Produto, on_delete=models.SET_NULL, null=True, related_name='movimentacoes'
     )
@@ -141,6 +152,8 @@ class MovimentacaoEstoque(models.Model):
     tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
     quantidade = models.PositiveIntegerField()
     motivo = models.CharField(max_length=200)
+    motivo_codigo = models.CharField(max_length=30, blank=True, default='')
+    motivo_detalhe = models.CharField(max_length=200, blank=True, default='')
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
         related_name='movimentacoes_registradas',
