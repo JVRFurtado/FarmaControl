@@ -52,7 +52,7 @@
         {% for categoria in categorias %}
           <li>
             <span>{{ categoria.nome }}</span>
-            {% if request.user.cargo == 'G' %}
+            {% if request.user.is_superuser or request.user.cargo == 'G' %}
             <form action="{% url 'excluir_categoria' categoria.id %}" method="post" onsubmit="return confirm('{{ t.categorias.excluir }}?')">
               {% csrf_token %}
               <button type="submit" class="link-excluir"><i class="fa fa-trash-alt" aria-hidden="true"></i> {{ t.categorias.excluir }}</button>

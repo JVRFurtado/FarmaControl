@@ -179,7 +179,13 @@ select:focus-visible, textarea:focus-visible, label:focus-within {
   font-size: 22px;
 }
 
-/* ---------- Barra de navegação (topo) ---------- */
+/* ---------- Barra de navegação (topo) ----------
+   Regra de layout: o cabeçalho NUNCA quebra linha.
+   - Desktop (acima de 1000px): marca + links + ações numa linha só, sem
+     menu hambúrguer. Em larguras intermediárias, fonte e espaçamentos dos
+     links encolhem de forma fluida (clamp) e a marca vira só o ícone.
+   - Mobile (até 1000px): hambúrguer + marca (ícone) + ações numa linha só;
+     os links ficam num menu suspenso aberto pelo hambúrguer. */
 .app-header {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
@@ -190,16 +196,20 @@ select:focus-visible, textarea:focus-visible, label:focus-within {
 }
 
 .app-header__bar {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 16px;
+  padding: 8px 16px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  height: 60px;
+  flex-wrap: nowrap;
+  gap: 12px;
+  min-height: 60px;
+  /* Âncora do menu suspenso mobile (position:absolute, top:100%). */
+  position: relative;
 }
 
 .app-header__brand {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -207,22 +217,26 @@ select:focus-visible, textarea:focus-visible, label:focus-within {
   font-size: 18px;
   color: var(--brand);
   text-decoration: none;
+  white-space: nowrap;
 }
-.app-header__brand img { width: 28px; height: 28px; }
+.app-header__brand img { width: 28px; height: 28px; flex: 0 0 auto; }
 
 .app-header__nav {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 4px;
-  flex-wrap: wrap;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 2px;
 }
 
 .app-header__nav a {
   color: var(--text-muted);
   text-decoration: none;
-  font-size: 14px;
+  font-size: clamp(12px, 1.05vw, 14px);
   font-weight: 600;
-  padding: 8px 12px;
+  padding: 8px clamp(5px, 0.7vw, 10px);
   border-radius: var(--radius-sm);
   white-space: nowrap;
 }
@@ -234,12 +248,17 @@ select:focus-visible, textarea:focus-visible, label:focus-within {
 }
 
 .app-header__actions {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 8px;
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin-left: auto;
 }
+.app-header__actions form { display: flex; margin: 0; }
 
 .icon-btn {
+  flex: 0 0 auto;
   background: none;
   border: 1px solid var(--border);
   color: var(--text);
@@ -251,6 +270,7 @@ select:focus-visible, textarea:focus-visible, label:focus-within {
   justify-content: center;
   cursor: pointer;
   font-size: 15px;
+  text-decoration: none;
 }
 .icon-btn:hover { background: var(--surface-muted); }
 
@@ -261,12 +281,16 @@ select:focus-visible, textarea:focus-visible, label:focus-within {
   color: var(--text);
   padding: 8px 10px;
   font-size: 13px;
+  height: 38px;
 }
+
+.logout-btn { height: 38px; padding: 0 14px; white-space: nowrap; }
 
 /* Menu hamburguer (mobile) — 100% CSS, sem JavaScript */
 .nav-toggle-checkbox { display: none; }
 .nav-toggle-label {
   display: none;
+  flex: 0 0 auto;
   cursor: pointer;
   background: none;
   border: 1px solid var(--border);
@@ -278,23 +302,36 @@ select:focus-visible, textarea:focus-visible, label:focus-within {
   color: var(--text);
 }
 
-@media (max-width: 900px) {
+/* Largura intermediária: a marca vira só o ícone para sobrar espaço aos links */
+@media (max-width: 1250px) {
+  .app-header__brand-text { display: none; }
+}
+
+/* Mobile: hambúrguer + marca + ações, sempre numa linha só */
+@media (max-width: 1000px) {
+  .app-header__bar { gap: 8px; padding: 8px 12px; }
+  .nav-toggle-label { display: inline-flex; order: -1; }
   .app-header__nav {
     display: none;
     position: absolute;
-    top: 60px;
+    top: 100%;
     left: 0;
     right: 0;
     background: var(--surface);
     border-bottom: 1px solid var(--border);
     flex-direction: column;
     align-items: stretch;
+    justify-content: flex-start;
     padding: 8px;
+    gap: 4px;
     box-shadow: var(--shadow);
   }
-  .app-header__nav a { padding: 12px; }
+  .app-header__nav a { padding: 12px; font-size: 14px; }
   .nav-toggle-checkbox:checked ~ .app-header__nav { display: flex; }
-  .nav-toggle-label { display: inline-flex; }
+  .lang-select { padding: 8px 6px; font-size: 12px; }
+  /* "Sair" vira só o ícone, para caber tudo na mesma linha */
+  .logout-label { display: none; }
+  .logout-btn { width: 38px; padding: 0; justify-content: center; }
 }
 
 /* ---------- Botões ---------- */
@@ -364,6 +401,17 @@ select:focus-visible, textarea:focus-visible, label:focus-within {
   color: var(--text);
   font-size: 14px;
 }
+
+/* Célula com valor em cima e selo de status embaixo (ex.: quantidade +
+   "Estoque baixo", data + "Vencido"), com espaçamento entre eles. Vale em
+   desktop e mobile — mesmo padrão em coluna usado nas Ações no mobile. */
+.celula-empilhada {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.celula-empilhada .valor { white-space: nowrap; }
 
 /* ---------- Badges ---------- */
 .badge {

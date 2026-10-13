@@ -57,7 +57,13 @@
         <button type="submit" class="btn btn-primary btn-block"><i class="fa fa-check" aria-hidden="true"></i> {{ t.usuarios_gestao.btn_salvar }}</button>
       </form>
 
-      <p style="margin-top: 18px;">
+      {% if pode_trocar_senha %}
+        <p style="text-align: center; margin-top: 14px;">
+          <a href="{% url 'redefinir_senha_usuario' usuario_editado.id %}"><i class="fa fa-key" aria-hidden="true"></i> {{ t.usuarios_gestao.trocar_senha }}</a>
+        </p>
+      {% endif %}
+
+      <p style="margin-top: 18px; text-align: center;">
         <a href="{% url 'lista_usuarios' %}"><i class="fa fa-arrow-left" aria-hidden="true"></i> {{ t.form_produto.voltar }}</a>
       </p>
     </div>

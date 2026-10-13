@@ -3,7 +3,7 @@
   <div class="app-header__bar">
     <a href="{% url 'dashboard' %}" class="app-header__brand">
       <img src="https://cdn-icons-png.flaticon.com/512/3209/3209170.png" alt="" width="28" height="28">
-      {{ t.login.titulo }}
+      <span class="app-header__brand-text">{{ t.login.titulo }}</span>
     </a>
 
     <input type="checkbox" id="nav-toggle" class="nav-toggle-checkbox">
@@ -19,7 +19,7 @@
       <a href="{% url 'historico_movimentacoes' %}" {% if pagina_atual == 'movimentacoes' %}aria-current="page"{% endif %}>{{ t.nav.movimentacoes }}</a>
       <a href="{% url 'relatorios' %}" {% if pagina_atual == 'relatorios' %}aria-current="page"{% endif %}>{{ t.nav.relatorios }}</a>
       <a href="{% url 'analises' %}" {% if pagina_atual == 'analises' %}aria-current="page"{% endif %}>{{ t.nav.analises }}</a>
-      {% if request.user.cargo == 'G' %}
+      {% if request.user.is_superuser or request.user.cargo == 'G' %}
         <a href="{% url 'lista_usuarios' %}" {% if pagina_atual == 'usuarios' %}aria-current="page"{% endif %}>{{ t.nav.usuarios }}</a>
       {% endif %}
     </nav>
@@ -37,9 +37,16 @@
 
       <button type="button" id="theme-toggle" class="icon-btn" aria-label="{{ t.nav.mudar_tema }}" aria-pressed="false">🌙</button>
 
-      <form method="post" action="{% url 'logout' %}" style="display:inline;">
+      <a href="{% url 'password_change' %}" class="icon-btn" aria-label="{{ t.usuarios_gestao.form_senha_titulo }}" title="{{ t.usuarios_gestao.form_senha_titulo }}">
+        <i class="fa fa-key" aria-hidden="true"></i>
+      </a>
+
+      <form method="post" action="{% url 'logout' %}">
         {% csrf_token %}
-        <button type="submit" class="btn btn-secondary">{{ t.nav.sair }}</button>
+        <button type="submit" class="btn btn-secondary logout-btn" aria-label="{{ t.nav.sair }}" title="{{ t.nav.sair }}">
+          <i class="fa fa-right-from-bracket" aria-hidden="true"></i>
+          <span class="logout-label">{{ t.nav.sair }}</span>
+        </button>
       </form>
     </div>
   </div>

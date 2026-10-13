@@ -88,7 +88,6 @@
       .actions .btn { flex: 1 1 0; justify-content: center; padding-left: 10px; padding-right: 10px; }
     }
 
-    .badge-linha { margin-left: 6px; }
 
     tr.linha-vencido td { background: var(--danger-bg); }
     tr.linha-aviso td { background: var(--warning-bg); }
@@ -221,7 +220,6 @@
               <th scope="col"><i class="fa fa-tags" aria-hidden="true"></i> {{ t.produtos.col_categoria }}</th>
               <th scope="col"><i class="fa fa-sort-numeric-up" aria-hidden="true"></i> {{ t.produtos.col_quantidade }}</th>
               <th scope="col"><i class="fa fa-calendar-alt" aria-hidden="true"></i> {{ t.produtos.col_validade }}</th>
-              <th scope="col"><i class="fa fa-triangle-exclamation" aria-hidden="true"></i> {{ t.produtos.col_status }}</th>
               <th scope="col"><i class="fa fa-cogs" aria-hidden="true"></i> {{ t.produtos.col_acoes }}</th>
             </tr>
           </thead>
@@ -231,24 +229,28 @@
                 <td>{{ produto.nome }}</td>
                 <td>{{ produto.categoria.nome }}</td>
                 <td>
-                  {{ produto.quantidade }}
-                  {% if produto.estoque_baixo %}
-                    <span class="badge badge-warning badge-linha"><i class="fa fa-arrow-down" aria-hidden="true"></i> {{ t.produtos.estoque_baixo_badge }}</span>
-                  {% endif %}
+                  <div class="celula-empilhada">
+                    <span class="valor">{{ produto.quantidade|default_if_none:"—" }}</span>
+                    {% if produto.estoque_baixo %}
+                      <span class="badge badge-warning"><i class="fa fa-arrow-down" aria-hidden="true"></i> {{ t.produtos.estoque_baixo_badge }}</span>
+                    {% endif %}
+                  </div>
                 </td>
-                <td>{{ produto.data_validade|data_localizada:idioma_atual }}</td>
                 <td>
-                  {% if produto.esta_vencido %}
-                    <span class="badge badge-danger"><i class="fa fa-skull-crossbones" aria-hidden="true"></i> {{ t.produtos.status_vencido }}</span>
-                  {% elif produto.vencimento_proximo %}
-                    <span class="badge badge-warning"><i class="fa fa-clock" aria-hidden="true"></i> {{ t.produtos.status_aviso }} ({{ produto.dias_para_vencer }})</span>
-                  {% elif produto.data_validade %}
-                    <span class="badge badge-success"><i class="fa fa-check" aria-hidden="true"></i> {{ t.produtos.status_normal }}</span>
-                  {% endif %}
+                  <div class="celula-empilhada">
+                    <span class="valor">{{ produto.data_validade|data_localizada:idioma_atual }}</span>
+                    {% if produto.esta_vencido %}
+                      <span class="badge badge-danger"><i class="fa fa-skull-crossbones" aria-hidden="true"></i> {{ t.produtos.status_vencido }}</span>
+                    {% elif produto.vencimento_proximo %}
+                      <span class="badge badge-warning"><i class="fa fa-clock" aria-hidden="true"></i> {{ t.produtos.status_aviso }} ({{ produto.dias_para_vencer }})</span>
+                    {% elif produto.data_validade %}
+                      <span class="badge badge-success"><i class="fa fa-check" aria-hidden="true"></i> {{ t.produtos.status_normal }}</span>
+                    {% endif %}
+                  </div>
                 </td>
                 <td class="acoes">
                   <div class="acoes-lista">
-                    {% if request.user.cargo == 'G' %}
+                    {% if request.user.is_superuser or request.user.cargo == 'G' %}
                     <a href="{% url 'editar_produto' produto.id %}"><i class="fa fa-edit" aria-hidden="true"></i> {{ t.produtos.editar }}</a>
                     <form action="{% url 'excluir_produto' produto.id %}" method="post" onsubmit="return confirm('{{ t.produtos.excluir }}?')">
                       {% csrf_token %}
@@ -262,7 +264,7 @@
               </tr>
             {% empty %}
               <tr>
-                <td colspan="6" style="text-align: center; font-style: italic; color: var(--text-muted);">{{ t.produtos.nenhum_produto }}</td>
+                <td colspan="5" style="text-align: center; font-style: italic; color: var(--text-muted);">{{ t.produtos.nenhum_produto }}</td>
               </tr>
             {% endfor %}
           </tbody>

@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.urls import path, include
 from usuarios.views import LoginRedirecionadoView
 from usuarios import views 
@@ -13,8 +14,9 @@ urlpatterns = [
     path('estoque/', include('estoque.urls')),
     path('usuarios/', include('usuarios.urls')),
 
-    #rotas de autenticação padrão do django
-    path('auth/', include('django.contrib.auth.urls')),
+    # Rotas de troca/recuperação de senha do Django.
+    path('auth/password_change/', auth_views.PasswordChangeView.as_view(), name='password_change'),
+    path('auth/password_change/done/', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
 
     # Troca de idioma (manual) — funciona em qualquer página via POST
     path('idioma/<str:codigo>/', views_farmacontrol.mudar_idioma, name='mudar_idioma'),

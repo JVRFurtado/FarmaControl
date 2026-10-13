@@ -80,7 +80,9 @@
                 <td>{{ usuario.username }}{% if usuario.id == usuario_atual_id %} <strong>{{ t.usuarios_gestao.voce }}</strong>{% endif %}</td>
                 <td>{{ usuario.email|default:"—" }}</td>
                 <td>
-                  {% if usuario.cargo == 'G' %}
+                  {% if usuario.is_superuser %}
+                    <span class="badge badge-warning">{{ t.usuarios_gestao.cargo_admin }}</span>
+                  {% elif usuario.cargo == 'G' %}
                     <span class="badge badge-success">{{ t.usuarios_gestao.cargo_gestor }}</span>
                   {% else %}
                     <span class="badge badge-info">{{ t.usuarios_gestao.cargo_atendente }}</span>
@@ -95,8 +97,13 @@
                 </td>
                 <td class="acoes">
                   <div class="acoes-lista">
-                    <a href="{% url 'editar_usuario' usuario.id %}"><i class="fa fa-edit" aria-hidden="true"></i> {{ t.usuarios_gestao.editar }}</a>
-                    {% if usuario.id != usuario_atual_id %}
+                    {% if usuario.pode_editar %}
+                      <a href="{% url 'editar_usuario' usuario.id %}"><i class="fa fa-edit" aria-hidden="true"></i> {{ t.usuarios_gestao.editar }}</a>
+                    {% endif %}
+                    {% if usuario.pode_trocar_senha %}
+                      <a href="{% url 'redefinir_senha_usuario' usuario.id %}"><i class="fa fa-key" aria-hidden="true"></i> {{ t.usuarios_gestao.trocar_senha }}</a>
+                    {% endif %}
+                    {% if usuario.pode_status %}
                       <form action="{% url 'alternar_status_usuario' usuario.id %}" method="post" onsubmit="return confirm('{% if usuario.is_active %}{{ t.usuarios_gestao.desativar }}{% else %}{{ t.usuarios_gestao.ativar }}{% endif %} {{ usuario.username }}?')">
                         {% csrf_token %}
                         <button type="submit">
@@ -107,6 +114,9 @@
                           {% endif %}
                         </button>
                       </form>
+                    {% endif %}
+                    {% if not usuario.pode_editar and not usuario.pode_trocar_senha and not usuario.pode_status %}
+                      <span style="color: var(--text-muted);">—</span>
                     {% endif %}
                   </div>
                 </td>

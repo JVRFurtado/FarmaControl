@@ -20,6 +20,10 @@ class Command(BaseCommand):
                 '(evita criar um superusuário com senha padrão previsível).'
             )
 
-        User.objects.create_superuser('admin', 'admin@example.com', password)
+        admin = User.objects.create_superuser('admin', 'admin@example.com', password)
+        # cargo='G' é só para exibição (ex.: badges na tela de usuários);
+        # o privilégio de Admin de verdade vem de is_superuser=True, não do cargo.
+        admin.cargo = 'G'
+        admin.save()
         self.stdout.write(self.style.SUCCESS('Superuser criado com sucesso!'))
 

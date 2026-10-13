@@ -20,11 +20,15 @@ from farmacontrol.context_processors import idioma_da_requisicao
 
 
 def gestor_required(view_func):
-    """Só permite acesso a usuários com cargo 'Gestor'. Atendentes recebem 403."""
+    """Só permite acesso a Gestor ou Admin (superusuário). Atendentes recebem 403.
+
+    O Admin é o superusuário do Django (`is_superuser=True`, criado via
+    `python manage.py createsu` ou `createsuperuser`) ele tem, no mínimo,
+    os mesmos privilégios do Gestor em todo o sistema."""
     @wraps(view_func)
     @login_required
     def _wrapped(request, *args, **kwargs):
-        if request.user.cargo != 'G':
+        if not (request.user.is_superuser or request.user.cargo == 'G'):
             raise PermissionDenied('Apenas o Gestor pode realizar esta ação.')
         return view_func(request, *args, **kwargs)
     return _wrapped
@@ -209,7 +213,7 @@ def adicionar_medicamento(request):
     })
 
 # Editar produto
-@login_required
+@gestor_required
 def editar_produto(request, pk):
     produto = get_object_or_404(Produto, pk=pk)
     tr = TRANSLATIONS.get(idioma_da_requisicao(request), TRANSLATIONS[IDIOMA_PADRAO])['mensagens']
@@ -600,7 +604,6 @@ def relatorios(request):
 
 # --- Análises / Gráficos (Fase 4) ---
 
-@login_required
 @login_required
 def analises(request):
     idioma = idioma_da_requisicao(request)

@@ -3,11 +3,14 @@ from datetime import date, timedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth.forms import SetPasswordForm
+from django.core.exceptions import PermissionDenied
 from django.db.models import F
 from django.contrib.auth.views import LoginView  
 from django.urls import reverse_lazy
 from .models import Users
 from .forms import UserCreationForm, UserChargeForm
+from . import permissoes
 from estoque.models import Produto, DIAS_AVISO_VENCIMENTO
 from estoque.views import gestor_required
 from farmacontrol.i18n import TRANSLATIONS, IDIOMA_PADRAO
@@ -84,9 +87,9 @@ def dashboard(request):
 
 @login_required
 def perfil_gestor(request):
-    # Só permite acesso se for gestor (cargo G)
-    if request.user.cargo != 'G':
-        # Se não for gestor, pode redirecionar para dashboard 
+    # Só permite acesso a Gestor ou Admin (mesma regra de gestor_required)
+    if not (request.user.is_superuser or request.user.cargo == 'G'):
+        # Se não for gestor nem admin, redireciona para o dashboard
         return redirect('dashboard')
     
     return render(request, 'usuarios/perfil_gestor.html', {
@@ -109,11 +112,20 @@ def configuracoes(request):
     return render(request, 'usuarios/configuracoes.html')
 
 
-# --- Gerenciamento de usuários (Fase 4) — restrito ao Gestor ---
+# --- Gerenciamento de usuários — restrito a Gestor/Admin, com regras finas
+# de permissão por ação (veja usuarios/permissoes.py para a matriz completa) ---
 
 @gestor_required
 def lista_usuarios(request):
     usuarios = Users.objects.all().order_by('username')
+    # Calcula, por usuário da lista, o que o ator logado pode fazer com ele —
+    # assim o template só decide o que MOSTRAR, nunca o que é PERMITIDO (essa
+    # decisão fica só em permissoes.py, testável isoladamente).
+    for usuario in usuarios:
+        usuario.pode_editar = permissoes.pode_ver_ou_editar_perfil(request.user, usuario)
+        usuario.pode_trocar_senha = permissoes.pode_trocar_senha(request.user, usuario)
+        usuario.pode_status = permissoes.pode_ativar_ou_desativar(request.user, usuario) and usuario.pk != request.user.pk
+
     return render(request, 'usuarios/lista_usuarios.html', {
         'usuarios': usuarios,
         'usuario_atual_id': request.user.id,
@@ -141,18 +153,62 @@ def editar_usuario(request, pk):
     usuario_editado = get_object_or_404(Users, pk=pk)
     tr = TRANSLATIONS.get(idioma_da_requisicao(request), TRANSLATIONS[IDIOMA_PADRAO])['mensagens']
 
+    # Gestor não pode sequer abrir a tela de outro Gestor (só Admin pode).
+    if not permissoes.pode_ver_ou_editar_perfil(request.user, usuario_editado):
+        raise PermissionDenied('Você não tem permissão para editar este usuário.')
+
     if request.method == 'POST':
         form = UserChargeForm(request.POST, instance=usuario_editado)
-        if form.is_valid():
-            form.save()
-            messages.success(request, tr['usuario_atualizado'])
-            return redirect('lista_usuarios')
     else:
         form = UserChargeForm(instance=usuario_editado)
+
+    # Quando o ator não pode mudar o cargo deste alvo, o campo fica
+    # `disabled`: o Django ignora qualquer valor enviado nele e sempre usa
+    # o valor original da instância ao salvar, é a própria validação de
+    # segurança (não dá pra burlar enviando o campo manualmente no POST).
+    if not permissoes.pode_alterar_cargo(request.user, usuario_editado):
+        form.fields['cargo'].disabled = True
+
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, tr['usuario_atualizado'])
+        return redirect('lista_usuarios')
 
     return render(request, 'usuarios/editar_usuario.html', {
         'form': form,
         'usuario_editado': usuario_editado,
+        'pode_trocar_senha': permissoes.pode_trocar_senha(request.user, usuario_editado),
+    })
+
+
+@gestor_required
+def redefinir_senha_usuario(request, pk):
+    """Define uma nova senha para outro usuário, sem precisar da senha atual
+    dele — é um reset administrativo (Admin, ou Gestor sobre um Atendente ou
+    sobre a própria conta). Para a pessoa trocar a PRÓPRIA senha sabendo a
+    senha atual, use o fluxo padrão em /auth/password_change/."""
+    usuario_alvo = get_object_or_404(Users, pk=pk)
+
+    if not permissoes.pode_trocar_senha(request.user, usuario_alvo):
+        raise PermissionDenied('Você não tem permissão para trocar a senha deste usuário.')
+
+    tr = TRANSLATIONS.get(idioma_da_requisicao(request), TRANSLATIONS[IDIOMA_PADRAO])['mensagens']
+
+    if request.method == 'POST':
+        form = SetPasswordForm(usuario_alvo, request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, tr['senha_redefinida'].format(usuario=usuario_alvo.username))
+            return redirect('lista_usuarios')
+    else:
+        form = SetPasswordForm(usuario_alvo)
+
+    for campo in form.fields.values():
+        campo.widget.attrs.update({'class': 'input-form', 'required': 'required'})
+
+    return render(request, 'usuarios/redefinir_senha.html', {
+        'form': form,
+        'usuario_alvo': usuario_alvo,
     })
 
 
@@ -165,6 +221,11 @@ def alternar_status_usuario(request, pk):
         messages.error(request, tr['nao_pode_alterar_propria_conta'])
         return redirect('lista_usuarios')
 
+    # Só o Admin ativa/desativa contas — Gestor não tem essa permissão para
+    # ninguém (nem para Atendentes).
+    if not permissoes.pode_ativar_ou_desativar(request.user, usuario):
+        raise PermissionDenied('Apenas o Admin pode ativar ou desativar usuários.')
+
     if request.method != 'POST':
         return render(request, 'usuarios/confirmar_status_usuario.html', {'usuario': usuario})
 
@@ -173,7 +234,3 @@ def alternar_status_usuario(request, pk):
     chave = 'usuario_ativado' if usuario.is_active else 'usuario_desativado'
     messages.success(request, tr[chave].format(usuario=usuario.username))
     return redirect('lista_usuarios')
-
-
-
-# Create your views here.
