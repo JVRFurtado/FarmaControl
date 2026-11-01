@@ -26,10 +26,16 @@ if not SECRET_KEY:
 
 # Hosts permitidos: definidos via variável de ambiente (separados por vírgula),
 # com um padrão razoável para desenvolvimento e para o domínio conhecido no Render.
-ALLOWED_HOSTS = os.environ.get(
-    'ALLOWED_HOSTS',
-    'farmcontrol.onrender.com,localhost,127.0.0.1'
-).split(',')
+ALLOWED_HOSTS = [
+    h.strip() for h in os.environ.get(
+        'ALLOWED_HOSTS',
+        'farmcontrol.onrender.com,localhost,127.0.0.1'
+    ).split(',') if h.strip()
+]
+# O Render informa o hostname público do serviço automaticamente.
+_host_render = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if _host_render and _host_render not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(_host_render)
 
 # App de usuários customizado
 AUTH_USER_MODEL = 'usuarios.Users'
