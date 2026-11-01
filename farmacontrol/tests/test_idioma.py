@@ -68,7 +68,7 @@ class DeteccaoDeIdiomaTests(TestCase):
         self.assertEqual(contexto['t']['comum']['voltar_inicio'], 'Back to Home')
 
     def test_fallback_de_secao_ausente_usa_portugues(self):
-        # Se uma seção não existir pro idioma, o _TraducaoComFallback cai no português.
+        
         request = self.factory.get('/')
         request.COOKIES['idioma'] = 'en'
         contexto = idioma_e_tema(request)

@@ -52,6 +52,7 @@ TRANSLATIONS = {
             'senha_placeholder': 'Digite sua senha',
             'lembrar': 'Lembrar-me',
             'botao_entrar': 'Entrar',
+            'erro_credenciais': 'Usuário ou senha incorretos. Por favor, tente novamente.',
         },
         'dashboard': {
             'bem_vindo': 'Bem-vindo',
@@ -271,6 +272,10 @@ TRANSLATIONS = {
             'voltar_inicio': 'Voltar ao Início',
             'pular_conteudo': 'Pular para o conteúdo',
             'legenda_obrigatorio': '* Campo obrigatório',
+            'pagina': 'Página',
+            'de': 'de',
+            'anterior': 'Anterior',
+            'proxima': 'Próxima',
         },
         'mensagens': {
             'produto_cadastrado': 'Produto cadastrado com sucesso!',
@@ -320,6 +325,7 @@ TRANSLATIONS = {
             'senha_placeholder': 'Enter your password',
             'lembrar': 'Remember me',
             'botao_entrar': 'Sign in',
+            'erro_credenciais': 'Incorrect username or password. Please try again.',
         },
         'dashboard': {
             'bem_vindo': 'Welcome',
@@ -539,6 +545,10 @@ TRANSLATIONS = {
             'voltar_inicio': 'Back to Home',
             'pular_conteudo': 'Skip to content',
             'legenda_obrigatorio': '* Required field',
+            'pagina': 'Page',
+            'de': 'of',
+            'anterior': 'Previous',
+            'proxima': 'Next',
         },
         'mensagens': {
             'produto_cadastrado': 'Product registered successfully!',

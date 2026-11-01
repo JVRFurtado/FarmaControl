@@ -1,8 +1,9 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import F
 
 DIAS_AVISO_VENCIMENTO = 30
 
@@ -15,6 +16,46 @@ class Categoria(models.Model):
 
     def __str__(self):
         return self.nome
+
+class ProdutoQuerySet(models.QuerySet):
+    """Filtros de situação do estoque feitos direto no banco.
+
+    Espelham as propriedades calculadas de `Produto` (`estoque_baixo`,
+    `esta_vencido`, `vencimento_proximo`, `status_validade`), mas como
+    consulta SQL, assim dashboard, lista, relatórios e análises não
+    carregam todos os produtos na memória para filtrar em Python.
+    """
+
+    # Valores aceitos no parâmetro ?filtro= da lista de produtos.
+    FILTROS = ('estoque_baixo', 'vencendo', 'vencidos', 'normal')
+
+    def estoque_baixo(self):
+        return self.filter(quantidade__isnull=False, quantidade__lte=F('estoque_minimo'))
+
+    def vencidos(self, hoje=None):
+        hoje = hoje or date.today()
+        return self.filter(data_validade__lt=hoje)
+
+    def vencendo(self, hoje=None):
+        hoje = hoje or date.today()
+        limite = hoje + timedelta(days=DIAS_AVISO_VENCIMENTO)
+        return self.filter(data_validade__gte=hoje, data_validade__lte=limite)
+
+    def validade_normal(self, hoje=None):
+        hoje = hoje or date.today()
+        limite = hoje + timedelta(days=DIAS_AVISO_VENCIMENTO)
+        return self.filter(data_validade__gt=limite)
+
+    def por_filtro(self, filtro):
+        """Aplica um dos FILTROS pelo nome; valor desconhecido não filtra nada."""
+        metodos = {
+            'estoque_baixo': self.estoque_baixo,
+            'vencendo': self.vencendo,
+            'vencidos': self.vencidos,
+            'normal': self.validade_normal,
+        }
+        return metodos[filtro]() if filtro in metodos else self
+
 
 # Modelo Produto
 class Produto(models.Model):
@@ -45,6 +86,8 @@ class Produto(models.Model):
     )
     data_validade = models.DateField(null=True, blank=True)
     ultima_compra = models.DateField(null=True, blank=True)
+
+    objects = ProdutoQuerySet.as_manager()
 
     class Meta:
         constraints = [

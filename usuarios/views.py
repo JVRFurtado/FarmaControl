@@ -1,110 +1,72 @@
-from datetime import date, timedelta
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth.views import LoginView
 from django.core.exceptions import PermissionDenied
-from django.db.models import F
-from django.contrib.auth.views import LoginView  
-from django.urls import reverse_lazy
-from .models import Users
-from .forms import UserCreationForm, UserChargeForm
+from django.shortcuts import get_object_or_404, redirect, render
+
+from estoque.models import Produto
+from farmacontrol.context_processors import idioma_da_requisicao, traducoes_da_requisicao
+from farmacontrol.formatacao import formatar_data
+from farmacontrol.formularios import dados_do_post
+
 from . import permissoes
-from estoque.models import Produto, DIAS_AVISO_VENCIMENTO
-from estoque.views import gestor_required
-from farmacontrol.i18n import TRANSLATIONS, IDIOMA_PADRAO
-from farmacontrol.context_processors import idioma_da_requisicao
+from .decorators import gestor_required
+from .forms import UserChargeForm, UserCreationForm
+from .models import Users
+
+ALERTAS_POR_TIPO = 10  
+ALERTAS_NO_PAINEL = 15
 
 
-
-# view de login com redirecionamento
 class LoginRedirecionadoView(LoginView):
     template_name = 'registration/login.html'
 
-    def get_success_url(self):
-        return reverse_lazy('dashboard')
-
     def form_invalid(self, form):
-        form.add_error(None, "Usuário ou senha incorretos. Por favor, tente novamente.")
+        form.errors.pop('__all__', None)
+        form.add_error(None, traducoes_da_requisicao(self.request)['login']['erro_credenciais'])
         return self.render_to_response(self.get_context_data(form=form))
 
 
 @login_required
 def dashboard(request):
-    is_gestor = request.user.cargo == 'G'
-    is_temporarily_atendente = request.user.is_temporarily_atendente
-
     idioma = idioma_da_requisicao(request)
-    tr_dash = TRANSLATIONS.get(idioma, TRANSLATIONS[IDIOMA_PADRAO])['dashboard']
-
-    def _data_fmt(valor):
-        if idioma == 'en':
-            return valor.strftime('%b %d, %Y')
-        return valor.strftime('%d/%m/%Y')
-
-    hoje = date.today()
-    limite_aviso = hoje + timedelta(days=DIAS_AVISO_VENCIMENTO)
+    tr = traducoes_da_requisicao(request)['dashboard']
 
     produtos = Produto.objects.all()
-    total_produtos = produtos.count()
+    estoque_baixo = produtos.estoque_baixo()
+    vencidos = produtos.vencidos()
+    vencendo = produtos.vencendo()
 
-    produtos_estoque_baixo = produtos.filter(quantidade__isnull=False, quantidade__lte=F('estoque_minimo'))
-    produtos_vencidos = produtos.filter(data_validade__isnull=False, data_validade__lt=hoje)
-    produtos_vencendo = produtos.filter(data_validade__gte=hoje, data_validade__lte=limite_aviso)
-
-    # Lista de alertas recentes para o painel: vencidos primeiro, depois vencendo em breve,
-    # depois estoque baixo — limitada para não sobrecarregar o dashboard.
-    alertas = []
-    for produto in produtos_vencidos.order_by('data_validade')[:10]:
-        alertas.append({
-            'produto': produto,
-            'tipo': 'vencido',
-            'mensagem': f'{tr_dash["alerta_vencido_em"]} {_data_fmt(produto.data_validade)}',
-        })
-    for produto in produtos_vencendo.order_by('data_validade')[:10]:
-        alertas.append({
-            'produto': produto,
-            'tipo': 'aviso',
-            'mensagem': f'{tr_dash["alerta_vence_em"]} {produto.dias_para_vencer} {tr_dash["alerta_dia"]} ({_data_fmt(produto.data_validade)})',
-        })
-    for produto in produtos_estoque_baixo.order_by('quantidade')[:10]:
-        alertas.append({
-            'produto': produto,
-            'tipo': 'estoque_baixo',
-            'mensagem': f'{tr_dash["alerta_estoque_baixo_texto"]} {produto.quantidade} {tr_dash["alerta_unidade"]} ({tr_dash["alerta_minimo"]} {produto.estoque_minimo})',
-        })
+    alertas = (
+        [{'produto': p, 'tipo': 'vencido',
+          'mensagem': f'{tr["alerta_vencido_em"]} {formatar_data(p.data_validade, idioma)}'}
+         for p in vencidos.order_by('data_validade')[:ALERTAS_POR_TIPO]]
+        + [{'produto': p, 'tipo': 'aviso',
+            'mensagem': (f'{tr["alerta_vence_em"]} {p.dias_para_vencer} {tr["alerta_dia"]} '
+                         f'({formatar_data(p.data_validade, idioma)})')}
+           for p in vencendo.order_by('data_validade')[:ALERTAS_POR_TIPO]]
+        + [{'produto': p, 'tipo': 'estoque_baixo',
+            'mensagem': (f'{tr["alerta_estoque_baixo_texto"]} {p.quantidade} {tr["alerta_unidade"]} '
+                         f'({tr["alerta_minimo"]} {p.estoque_minimo})')}
+           for p in estoque_baixo.order_by('quantidade')[:ALERTAS_POR_TIPO]]
+    )
 
     return render(request, 'usuarios/dashboard.html', {
-        'is_gestor': is_gestor,
-        'is_temporarily_atendente': is_temporarily_atendente,
-        'total_produtos': total_produtos,
-        'total_estoque_baixo': produtos_estoque_baixo.count(),
-        'total_vencidos': produtos_vencidos.count(),
-        'total_vencendo': produtos_vencendo.count(),
-        'alertas': alertas[:15],
+        'total_produtos': produtos.count(),
+        'total_estoque_baixo': estoque_baixo.count(),
+        'total_vencidos': vencidos.count(),
+        'total_vencendo': vencendo.count(),
+        'alertas': alertas[:ALERTAS_NO_PAINEL],
     })
+
 
 @login_required
 def perfil_gestor(request):
-    # Só permite acesso a Gestor ou Admin (mesma regra de gestor_required)
-    if not (request.user.is_superuser or request.user.cargo == 'G'):
-        # Se não for gestor nem admin, redireciona para o dashboard
-        return redirect('dashboard')
     
-    return render(request, 'usuarios/perfil_gestor.html', {
-        'user': request.user,
-    })
-
-# View para alternar o cargo de Gestor para Atendente
-@login_required
-def alternar_para_atendente(request):
-    if request.user.cargo == 'G':
-       request.user.is_temporarily_atendente = not request.user.is_temporarily_atendente
-       request.user.save()
-       return redirect('dashboard') 
-    return redirect('login')
-
+    if not permissoes.eh_gestor_ou_admin(request.user):
+        return redirect('dashboard')
+    return render(request, 'usuarios/perfil_gestor.html', {'user': request.user})
 
 
 @login_required
@@ -124,7 +86,10 @@ def lista_usuarios(request):
     for usuario in usuarios:
         usuario.pode_editar = permissoes.pode_ver_ou_editar_perfil(request.user, usuario)
         usuario.pode_trocar_senha = permissoes.pode_trocar_senha(request.user, usuario)
-        usuario.pode_status = permissoes.pode_ativar_ou_desativar(request.user, usuario) and usuario.pk != request.user.pk
+        usuario.pode_status = (
+            permissoes.pode_ativar_ou_desativar(request.user, usuario)
+            and usuario.pk != request.user.pk
+        )
 
     return render(request, 'usuarios/lista_usuarios.html', {
         'usuarios': usuarios,
@@ -134,16 +99,12 @@ def lista_usuarios(request):
 
 @gestor_required
 def adicionar_usuario(request):
-    tr = TRANSLATIONS.get(idioma_da_requisicao(request), TRANSLATIONS[IDIOMA_PADRAO])['mensagens']
+    form = UserCreationForm(dados_do_post(request))
 
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, tr['usuario_cadastrado'])
-            return redirect('lista_usuarios')
-    else:
-        form = UserCreationForm()
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, traducoes_da_requisicao(request)['mensagens']['usuario_cadastrado'])
+        return redirect('lista_usuarios')
 
     return render(request, 'usuarios/adicionar_usuario.html', {'form': form})
 
@@ -151,27 +112,24 @@ def adicionar_usuario(request):
 @gestor_required
 def editar_usuario(request, pk):
     usuario_editado = get_object_or_404(Users, pk=pk)
-    tr = TRANSLATIONS.get(idioma_da_requisicao(request), TRANSLATIONS[IDIOMA_PADRAO])['mensagens']
 
     # Gestor não pode sequer abrir a tela de outro Gestor (só Admin pode).
     if not permissoes.pode_ver_ou_editar_perfil(request.user, usuario_editado):
         raise PermissionDenied('Você não tem permissão para editar este usuário.')
 
-    if request.method == 'POST':
-        form = UserChargeForm(request.POST, instance=usuario_editado)
-    else:
-        form = UserChargeForm(instance=usuario_editado)
+    form = UserChargeForm(dados_do_post(request), instance=usuario_editado)
 
     # Quando o ator não pode mudar o cargo deste alvo, o campo fica
     # `disabled`: o Django ignora qualquer valor enviado nele e sempre usa
-    # o valor original da instância ao salvar, é a própria validação de
-    # segurança (não dá pra burlar enviando o campo manualmente no POST).
+    # o valor original da instância ao salvar — não é só cosmético, é a
+    # própria validação de segurança (não dá pra burlar enviando o campo
+    # manualmente no POST).
     if not permissoes.pode_alterar_cargo(request.user, usuario_editado):
         form.fields['cargo'].disabled = True
 
     if request.method == 'POST' and form.is_valid():
         form.save()
-        messages.success(request, tr['usuario_atualizado'])
+        messages.success(request, traducoes_da_requisicao(request)['mensagens']['usuario_atualizado'])
         return redirect('lista_usuarios')
 
     return render(request, 'usuarios/editar_usuario.html', {
@@ -192,16 +150,13 @@ def redefinir_senha_usuario(request, pk):
     if not permissoes.pode_trocar_senha(request.user, usuario_alvo):
         raise PermissionDenied('Você não tem permissão para trocar a senha deste usuário.')
 
-    tr = TRANSLATIONS.get(idioma_da_requisicao(request), TRANSLATIONS[IDIOMA_PADRAO])['mensagens']
+    form = SetPasswordForm(usuario_alvo, dados_do_post(request))
 
-    if request.method == 'POST':
-        form = SetPasswordForm(usuario_alvo, request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, tr['senha_redefinida'].format(usuario=usuario_alvo.username))
-            return redirect('lista_usuarios')
-    else:
-        form = SetPasswordForm(usuario_alvo)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        mensagem = traducoes_da_requisicao(request)['mensagens']['senha_redefinida']
+        messages.success(request, mensagem.format(usuario=usuario_alvo.username))
+        return redirect('lista_usuarios')
 
     for campo in form.fields.values():
         campo.widget.attrs.update({'class': 'input-form', 'required': 'required'})
@@ -215,14 +170,14 @@ def redefinir_senha_usuario(request, pk):
 @gestor_required
 def alternar_status_usuario(request, pk):
     usuario = get_object_or_404(Users, pk=pk)
-    tr = TRANSLATIONS.get(idioma_da_requisicao(request), TRANSLATIONS[IDIOMA_PADRAO])['mensagens']
+    mensagens = traducoes_da_requisicao(request)['mensagens']
 
     if usuario.pk == request.user.pk:
-        messages.error(request, tr['nao_pode_alterar_propria_conta'])
+        messages.error(request, mensagens['nao_pode_alterar_propria_conta'])
         return redirect('lista_usuarios')
 
     # Só o Admin ativa/desativa contas — Gestor não tem essa permissão para
-    # ninguém (nem para Atendentes).
+    # ninguém (nem para Atendentes), conforme a regra de segurança definida.
     if not permissoes.pode_ativar_ou_desativar(request.user, usuario):
         raise PermissionDenied('Apenas o Admin pode ativar ou desativar usuários.')
 
@@ -230,7 +185,7 @@ def alternar_status_usuario(request, pk):
         return render(request, 'usuarios/confirmar_status_usuario.html', {'usuario': usuario})
 
     usuario.is_active = not usuario.is_active
-    usuario.save()
+    usuario.save(update_fields=['is_active'])
     chave = 'usuario_ativado' if usuario.is_active else 'usuario_desativado'
-    messages.success(request, tr[chave].format(usuario=usuario.username))
+    messages.success(request, mensagens[chave].format(usuario=usuario.username))
     return redirect('lista_usuarios')

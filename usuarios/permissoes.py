@@ -17,18 +17,31 @@ Regras:
   NÃO mexe em outro Gestor de forma alguma.
 - Atendente: nenhum acesso a gerenciamento de usuários.
 """
+from .models import Users
+
+CARGO_GESTOR = Users.CARGO_GESTOR
+CARGO_ATENDENTE = Users.CARGO_ATENDENTE
+
 
 def eh_admin(usuario):
     return bool(usuario.is_superuser)
 
 
 def eh_gestor(usuario):
-    return usuario.cargo == 'G'
+    return usuario.cargo == CARGO_GESTOR
+
+
+def eh_atendente(usuario):
+    return usuario.cargo == CARGO_ATENDENTE
+
+
+def eh_gestor_ou_admin(usuario):
+    return eh_admin(usuario) or eh_gestor(usuario)
 
 
 def pode_gerenciar_usuarios(ator):
     """Quem pode acessar a área de gerenciamento de usuários (listar, criar)."""
-    return eh_admin(ator) or eh_gestor(ator)
+    return eh_gestor_ou_admin(ator)
 
 
 def pode_ver_ou_editar_perfil(ator, alvo):
@@ -38,7 +51,7 @@ def pode_ver_ou_editar_perfil(ator, alvo):
     if eh_gestor(ator):
         # Gestor só edita a própria conta ou a de um Atendente — nunca a de
         # outro Gestor (mesmo que seja só para olhar o formulário).
-        return alvo.pk == ator.pk or alvo.cargo == 'A'
+        return alvo.pk == ator.pk or eh_atendente(alvo)
     return False
 
 
@@ -50,7 +63,7 @@ def pode_alterar_cargo(ator, alvo):
     if eh_gestor(ator):
         # Só promove Atendente a Gestor; nunca mexe no próprio cargo nem
         # rebaixa um Gestor (e nunca chega a editar outro Gestor, ver acima).
-        return alvo.pk != ator.pk and alvo.cargo == 'A'
+        return alvo.pk != ator.pk and eh_atendente(alvo)
     return False
 
 
@@ -61,7 +74,7 @@ def pode_trocar_senha(ator, alvo):
     if eh_admin(ator):
         return True
     if eh_gestor(ator):
-        return alvo.pk == ator.pk or alvo.cargo == 'A'
+        return alvo.pk == ator.pk or eh_atendente(alvo)
     return False
 
 

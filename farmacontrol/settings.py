@@ -1,5 +1,8 @@
+import logging
 import os
+import sys
 from pathlib import Path
+
 import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -8,6 +11,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Em desenvolvimento local, usa uma chave fixa apenas para não travar o `runserver`
 # (nunca faça deploy sem definir SECRET_KEY no ambiente).
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+
+RODANDO_TESTES = 'test' in sys.argv
 
 SECRET_KEY = os.environ.get('SECRET_KEY')
 if not SECRET_KEY:
@@ -99,8 +104,6 @@ else:
     }
 
 
-
-
 # Validação de senha
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
@@ -111,7 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Reforço de segurança em produção. Deixado fora do modo DEBUG para
 # não atrapalhar o desenvolvimento local em http://127.0.0.1.
-if not DEBUG:
+if not DEBUG and not RODANDO_TESTES:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
@@ -132,15 +135,17 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'  # Diretório para collectstatic no Heroku
 STATICFILES_DIRS = [BASE_DIR / 'estoque' / 'static']
 
-# Config WhiteNoise para otimizar arquivos estáticos no Heroku/Render.
-# Em desenvolvimento (DEBUG=True) usamos o storage simples do Django: o
-# ManifestStaticFilesStorage exige rodar `collectstatic` antes até para o
-# `runserver` local funcionar (ele lê um manifesto gerado por esse comando),
-# o que travaria quem só quer testar localmente sem esse passo extra.
-if DEBUG:
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
-else:
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+USAR_ESTATICOS_SIMPLES = DEBUG or RODANDO_TESTES
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {
+        'BACKEND': (
+            'django.contrib.staticfiles.storage.StaticFilesStorage'
+            if USAR_ESTATICOS_SIMPLES
+            else 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+        ),
+    },
+}
 
 # Configurações de login
 LOGIN_URL = '/usuarios/login/'
@@ -153,6 +158,5 @@ ROLEPERMISSIONS_MODULE = 'usuarios.roles'
 # Default auto field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-import logging
 logging.basicConfig(level=logging.DEBUG if DEBUG else logging.WARNING)
 

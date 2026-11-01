@@ -22,6 +22,7 @@
       {% if request.user.is_superuser or request.user.cargo == 'G' %}
         <a href="{% url 'lista_usuarios' %}" {% if pagina_atual == 'usuarios' %}aria-current="page"{% endif %}>{{ t.nav.usuarios }}</a>
       {% endif %}
+      <a href="{% url 'password_change' %}" class="nav-so-mobile">{{ t.usuarios_gestao.form_senha_titulo }}</a>
     </nav>
 
     <div class="app-header__actions">
@@ -37,7 +38,7 @@
 
       <button type="button" id="theme-toggle" class="icon-btn" aria-label="{{ t.nav.mudar_tema }}" aria-pressed="false">🌙</button>
 
-      <a href="{% url 'password_change' %}" class="icon-btn" aria-label="{{ t.usuarios_gestao.form_senha_titulo }}" title="{{ t.usuarios_gestao.form_senha_titulo }}">
+      <a href="{% url 'password_change' %}" class="icon-btn header-senha" aria-label="{{ t.usuarios_gestao.form_senha_titulo }}" title="{{ t.usuarios_gestao.form_senha_titulo }}">
         <i class="fa fa-key" aria-hidden="true"></i>
       </a>
 

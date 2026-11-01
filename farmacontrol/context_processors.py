@@ -22,6 +22,15 @@ def idioma_da_requisicao(request):
     return detectar_idioma_do_navegador(request)
 
 
+def traducoes_da_requisicao(request):
+    """Dicionário de traduções completo do idioma atual da requisição.
+
+    Atalho para as views que montam texto em Python (mensagens, alertas,
+    relatórios), evitando repetir `TRANSLATIONS.get(idioma_da_requisicao(...))`.
+    Uso: `traducoes_da_requisicao(request)['mensagens']['produto_cadastrado']`."""
+    return TRANSLATIONS.get(idioma_da_requisicao(request), TRANSLATIONS[IDIOMA_PADRAO])
+
+
 class _TraducaoComFallback(dict):
     """Um dict que, se uma chave (seção) não existir, devolve a seção
     equivalente do idioma padrão em vez de quebrar o template. Assim, um

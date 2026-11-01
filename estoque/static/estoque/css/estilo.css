@@ -220,6 +220,9 @@ select:focus-visible, textarea:focus-visible, label:focus-within {
   white-space: nowrap;
 }
 .app-header__brand img { width: 28px; height: 28px; flex: 0 0 auto; }
+.app-header__brand { min-width: 0; }
+.app-header__brand-text { overflow: hidden; text-overflow: ellipsis; }
+.nav-so-mobile { display: none; }
 
 .app-header__nav {
   flex: 1 1 auto;
@@ -307,10 +310,14 @@ select:focus-visible, textarea:focus-visible, label:focus-within {
   .app-header__brand-text { display: none; }
 }
 
-/* Mobile: hambúrguer + marca + ações, sempre numa linha só */
 @media (max-width: 1000px) {
   .app-header__bar { gap: 8px; padding: 8px 12px; }
-  .nav-toggle-label { display: inline-flex; order: -1; }
+  .app-header__brand { order: 1; flex: 1 1 auto; font-size: 17px; }
+  .app-header__brand-text { display: inline; }
+  .app-header__actions { order: 2; margin-left: 0; gap: 6px; }
+  .header-senha { display: none; }
+  .nav-toggle-label { display: inline-flex; order: 3; }
+  .nav-so-mobile { display: block; }
   .app-header__nav {
     display: none;
     position: absolute;
@@ -328,10 +335,17 @@ select:focus-visible, textarea:focus-visible, label:focus-within {
   }
   .app-header__nav a { padding: 12px; font-size: 14px; }
   .nav-toggle-checkbox:checked ~ .app-header__nav { display: flex; }
-  .lang-select { padding: 8px 6px; font-size: 12px; }
-  /* "Sair" vira só o ícone, para caber tudo na mesma linha */
+  .lang-select { padding: 8px 4px; font-size: 12px; max-width: 92px; }
   .logout-label { display: none; }
   .logout-btn { width: 38px; padding: 0; justify-content: center; }
+}
+
+@media (max-width: 400px) {
+  .app-header__bar { gap: 4px; padding: 8px; }
+  .app-header__brand { font-size: 15px; gap: 6px; }
+  .app-header__actions { gap: 4px; }
+  .icon-btn, .logout-btn, .nav-toggle-label { width: 34px; height: 34px; }
+  .lang-select { max-width: 78px; }
 }
 
 /* ---------- Botões ---------- */
@@ -412,6 +426,20 @@ select:focus-visible, textarea:focus-visible, label:focus-within {
   gap: 6px;
 }
 .celula-empilhada .valor { white-space: nowrap; }
+
+/* ---------- Paginação ---------- */
+.paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 20px;
+  font-size: 14px;
+}
+.paginacao a { font-weight: 600; text-decoration: none; }
+.paginacao__desativado { color: var(--text-muted); opacity: 0.6; }
+.paginacao__info { color: var(--text-muted); }
 
 /* ---------- Badges ---------- */
 .badge {
