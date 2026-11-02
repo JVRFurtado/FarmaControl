@@ -212,8 +212,9 @@
         </a>
       </div>
 
-      <div class="table-scroll">
+      <div class="table-scroll" tabindex="0" role="region" aria-label="{{ t.produtos.titulo }}">
         <table class="data-table">
+          <caption class="sr-only">{{ t.produtos.titulo }}</caption>
           <thead>
             <tr>
               <th scope="col"><i class="fa fa-box" aria-hidden="true"></i> {{ t.produtos.col_nome }}</th>

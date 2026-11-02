@@ -54,8 +54,8 @@
         {% csrf_token %}
 
         <div class="field">
-          <label>{{ t.entregar.produto }}</label>
-          <input type="text" value="{{ produto.nome }}" readonly>
+          <label for="entrega-produto">{{ t.entregar.produto }}</label>
+          <input type="text" id="entrega-produto" value="{{ produto.nome }}" readonly aria-readonly="true">
         </div>
 
         <div class="field">

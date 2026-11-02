@@ -123,7 +123,7 @@
 
       <p class="resumo">{{ total_linhas }} {% if idioma_atual == 'en' %}record{{ total_linhas|pluralize }} found{% else %}registro{{ total_linhas|pluralize }} encontrado{{ total_linhas|pluralize }}{% endif %}.</p>
 
-      <div class="table-scroll">
+      <div class="table-scroll" tabindex="0" role="region" aria-label="{{ t.relatorios.titulo }}">
         <table class="data-table">
           <caption>{{ tipo_rotulo }}</caption>
           <thead>

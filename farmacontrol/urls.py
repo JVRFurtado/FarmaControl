@@ -11,6 +11,7 @@ urlpatterns = [
     # Pagina admin e outras rotas
     path('admin/', admin.site.urls),
     path('estoque/', include('estoque.urls')),
+    path('api/', include('estoque.api_urls')),
     path('usuarios/', include('usuarios.urls')),
 
     # Rotas de troca/recuperação de senha do Django. NÃO usamos

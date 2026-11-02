@@ -64,6 +64,31 @@
     const legendaEntradas = '{{ t.analises.legenda_entradas|escapejs }}';
     const legendaSaidas = '{{ t.analises.legenda_saidas|escapejs }}';
 
+
+    // Alternativa textual dos gráficos (WCAG 1.1.1): uma tabela com os mesmos
+    // dados, lida por leitores de tela e invisível na tela.
+    function tabelaAlternativa(canvasId, rotulos, series) {
+      var canvas = document.getElementById(canvasId);
+      var titulo = document.getElementById(canvas.getAttribute('aria-labelledby')).textContent;
+      var t = document.createElement('table');
+      t.className = 'sr-only';
+      var html = '<caption>' + titulo + '</caption><thead><tr><th scope="col">' + titulo + '</th>';
+      series.forEach(function (s) { html += '<th scope="col">' + s.nome + '</th>'; });
+      html += '</tr></thead><tbody>';
+      rotulos.forEach(function (r, i) {
+        html += '<tr><th scope="row">' + r + '</th>';
+        series.forEach(function (s) { html += '<td>' + s.dados[i] + '</td>'; });
+        html += '</tr>';
+      });
+      t.innerHTML = html + '</tbody>';
+      canvas.parentNode.appendChild(t);
+    }
+    tabelaAlternativa('graficoCategoria', labelsCategoria, [{ nome: legendaQuantidade, dados: dadosCategoria }]);
+    tabelaAlternativa('graficoStatus', labelsStatus, [{ nome: legendaQuantidade, dados: dadosStatus }]);
+    tabelaAlternativa('graficoMovimentacoes', labelsDias, [
+      { nome: legendaEntradas, dados: dadosEntrada }, { nome: legendaSaidas, dados: dadosSaida },
+    ]);
+
     new Chart(document.getElementById('graficoCategoria'), {
       type: 'bar',
       data: {

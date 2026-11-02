@@ -18,7 +18,11 @@
     obrigatorios.forEach(function (campo) {
       if (!campoPreenchido(campo)) completo = false;
     });
-    botao.disabled = !completo;
+    // aria-disabled (em vez de disabled): o botão continua focável pelo
+    // teclado e os leitores de tela anunciam "indisponível" + o motivo
+    // (aria-describedby apontando para a legenda de campos obrigatórios).
+    botao.setAttribute('aria-disabled', completo ? 'false' : 'true');
+    botao.classList.toggle('is-disabled', !completo);
   }
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -27,6 +31,20 @@
       var botao = form.querySelector('button[type="submit"]');
       if (!botao || obrigatorios.length === 0) return;
 
+      var legenda = form.querySelector('.legenda-obrigatorio') || document.querySelector('.legenda-obrigatorio');
+      if (legenda) {
+        if (!legenda.id) legenda.id = 'legenda-obrigatorio';
+        botao.setAttribute('aria-describedby', legenda.id);
+      }
+      // Bloqueia o envio enquanto houver campo obrigatório vazio e leva o foco ao primeiro.
+      form.addEventListener('submit', function (evento) {
+        if (botao.getAttribute('aria-disabled') === 'true') {
+          evento.preventDefault();
+          for (var i = 0; i < obrigatorios.length; i++) {
+            if (!campoPreenchido(obrigatorios[i])) { obrigatorios[i].focus(); break; }
+          }
+        }
+      });
       var atualizar = function () { validarFormulario(form, botao); };
       obrigatorios.forEach(function (campo) {
         campo.addEventListener('input', atualizar);

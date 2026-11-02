@@ -3,7 +3,7 @@ services:
     name: farmcontrol
     runtime: python
     plan: free
-    buildCommand: ./build.sh
+    buildCommand: bash build.sh
     startCommand: gunicorn farmacontrol.wsgi:application --log-file -
     healthCheckPath: /usuarios/login/
     envVars:

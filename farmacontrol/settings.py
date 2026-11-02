@@ -12,6 +12,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # (nunca faça deploy sem definir SECRET_KEY no ambiente).
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
+# True quando o processo é `manage.py test`: nos testes não faz sentido forçar
+# HTTPS nem exigir o manifesto de arquivos estáticos do WhiteNoise.
 RODANDO_TESTES = 'test' in sys.argv
 
 SECRET_KEY = os.environ.get('SECRET_KEY')
@@ -118,7 +120,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
-# Reforço de segurança em produção. Deixado fora do modo DEBUG para
+# Reforço de segurança em produção (Render termina o HTTPS antes de chegar
+# no Django, por isso SECURE_PROXY_SSL_HEADER é necessário para o Django
+# saber que a conexão original era segura). Deixado fora do modo DEBUG para
 # não atrapalhar o desenvolvimento local em http://127.0.0.1.
 if not DEBUG and not RODANDO_TESTES:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -139,8 +143,15 @@ USE_TZ = True
 # Arquivos estáticos
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'  # Diretório para collectstatic no Heroku
-STATICFILES_DIRS = [BASE_DIR / 'estoque' / 'static']
+# Sem STATICFILES_DIRS: estoque/static já é encontrado pelo AppDirectoriesFinder
+# (declará-lo também aqui duplicava os arquivos no collectstatic).
 
+# Armazenamento de arquivos estáticos. Em produção, o WhiteNoise comprime e
+# gera nomes com hash (cache longo no navegador) — exige rodar `collectstatic`
+# no build, como já faz o render.yaml. Em desenvolvimento e nos testes usamos o
+# armazenamento simples do Django, que não exige `collectstatic` nem manifesto.
+# (A antiga configuração STATICFILES_STORAGE foi REMOVIDA no Django 5.1 e era
+# ignorada silenciosamente; o formato atual é o dicionário STORAGES.)
 USAR_ESTATICOS_SIMPLES = DEBUG or RODANDO_TESTES
 STORAGES = {
     'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},

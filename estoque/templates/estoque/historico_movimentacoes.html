@@ -38,8 +38,9 @@
         <a href="?tipo=SAIDA" class="{% if tipo_selecionado == 'SAIDA' %}ativo{% endif %}">{{ t.movimentacoes_hist.filtro_saidas }}</a>
       </div>
 
-      <div class="table-scroll">
+      <div class="table-scroll" tabindex="0" role="region" aria-label="{{ t.movimentacoes_hist.titulo }}">
         <table class="data-table">
+          <caption class="sr-only">{{ t.movimentacoes_hist.titulo }}</caption>
           <thead>
             <tr>
               <th scope="col">{{ t.movimentacoes_hist.col_data }}</th>

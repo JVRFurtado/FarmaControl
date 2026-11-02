@@ -17,6 +17,8 @@
   --surface: #ffffff;
   --surface-muted: #f7f8f9;
   --border: #e2e5e9;
+  --border-input: #7d8794;   /* bordas de controles: >= 3:1 (WCAG 1.4.11) */
+  --brand-on-light: #0b5c3d; /* texto sobre --brand-light: >= 4.5:1 */
 
   --text: #1f2937;
   --text-muted: #616b77;
@@ -48,6 +50,8 @@
     --surface: #1a2436;
     --surface-muted: #212d42;
     --border: #2c394f;
+  --border-input: #6b7785;
+  --brand-on-light: #7ee2ab;
 
     --text: #e5e7eb;
     --text-muted: #9aa5b1;
@@ -75,6 +79,8 @@
   --surface: #1a2436;
   --surface-muted: #212d42;
   --border: #2c394f;
+  --border-input: #6b7785;
+  --brand-on-light: #7ee2ab;
 
   --text: #e5e7eb;
   --text-muted: #9aa5b1;
@@ -100,6 +106,8 @@
   --surface: #ffffff;
   --surface-muted: #f7f8f9;
   --border: #e2e5e9;
+  --border-input: #7d8794;   /* bordas de controles: >= 3:1 (WCAG 1.4.11) */
+  --brand-on-light: #0b5c3d; /* texto sobre --brand-light: >= 4.5:1 */
   --text: #1f2937;
   --text-muted: #616b77;
   --text-on-brand: #ffffff;
@@ -247,7 +255,7 @@ select:focus-visible, textarea:focus-visible, label:focus-within {
 .app-header__nav a:hover,
 .app-header__nav a[aria-current="page"] {
   background: var(--brand-light);
-  color: var(--brand-dark);
+  color: var(--brand-on-light);
 }
 
 .app-header__actions {
@@ -263,7 +271,7 @@ select:focus-visible, textarea:focus-visible, label:focus-within {
 .icon-btn {
   flex: 0 0 auto;
   background: none;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-input);
   color: var(--text);
   border-radius: var(--radius-sm);
   width: 38px;
@@ -278,7 +286,7 @@ select:focus-visible, textarea:focus-visible, label:focus-within {
 .icon-btn:hover { background: var(--surface-muted); }
 
 .lang-select {
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-input);
   border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--text);
@@ -296,7 +304,7 @@ select:focus-visible, textarea:focus-visible, label:focus-within {
   flex: 0 0 auto;
   cursor: pointer;
   background: none;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-input);
   border-radius: var(--radius-sm);
   width: 38px;
   height: 38px;
@@ -310,6 +318,7 @@ select:focus-visible, textarea:focus-visible, label:focus-within {
   .app-header__brand-text { display: none; }
 }
 
+/* Mobile, numa linha só: logo + nome | idioma | tema | sair | hambúrguer (por último) */
 @media (max-width: 1000px) {
   .app-header__bar { gap: 8px; padding: 8px 12px; }
   .app-header__brand { order: 1; flex: 1 1 auto; font-size: 17px; }
@@ -363,7 +372,8 @@ select:focus-visible, textarea:focus-visible, label:focus-within {
   transition: background-color 0.15s ease, transform 0.05s ease;
 }
 .btn:active { transform: translateY(1px); }
-.btn:disabled, button:disabled {
+.btn:disabled, button:disabled,
+.btn[aria-disabled="true"], button[aria-disabled="true"] {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -410,7 +420,7 @@ select:focus-visible, textarea:focus-visible, label:focus-within {
   width: 100%;
   padding: 10px 12px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-input);
   background: var(--surface);
   color: var(--text);
   font-size: 14px;
@@ -487,4 +497,34 @@ table.data-table {
   .page-shell { padding: 16px 12px 40px 12px; }
   .card { padding: 18px; border-radius: var(--radius-sm); }
   .data-table th, .data-table td { padding: 8px; font-size: 13px; text-align: center; }
+}
+
+
+/* ---------- Acessibilidade (WCAG 2.1 AA) ---------- */
+/* Respeita a preferência do sistema por menos movimento (2.3.3 / boa prática) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Caixas de seleção e botões de rádio com borda visível e foco claro */
+input[type="checkbox"], input[type="radio"] { accent-color: var(--brand); width: 18px; height: 18px; }
+
+/* Modo de alto contraste do Windows: mantém contornos e foco visíveis */
+@media (forced-colors: active) {
+  .btn, .icon-btn, .nav-toggle-label, .lang-select, .badge, .card { border: 1px solid CanvasText; }
+  a:focus-visible, button:focus-visible, input:focus-visible,
+  select:focus-visible, textarea:focus-visible { outline: 3px solid Highlight; }
+}
+
+/* Links dentro de texto corrido não dependem só da cor */
+p a, .alert a, td a:not(.btn):not(.icon-btn) { text-decoration: underline; }
+
+/* Alvo de toque confortável para botões de ícone em telas de toque */
+@media (pointer: coarse) {
+  .icon-btn, .nav-toggle-label, .logout-btn, .lang-select { min-width: 40px; min-height: 40px; }
 }
